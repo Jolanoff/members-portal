@@ -800,6 +800,7 @@ const Profile = () => {
         if (response.status === 200) {
           fetchData()
           setSuccessAlertMessage('Your profile has been updated!')
+          setEditModalOpen(false)
           showSuccessAlert()
           //add unshow profile
         }
@@ -994,10 +995,10 @@ const Profile = () => {
 
             </Tabs.Group>
           </div>
-          <div className={`fixed bottom-0 right-0 mb-12 mr-12 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-99 ${successAlertVisable ? 'block' : 'hidden'}`}>
+          <div className={`fixed bottom-0 right-0 mb-12 mr-12 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-[100] ${successAlertVisable ? 'block' : 'hidden'}`}>
             {successAlertMessage}
           </div>
-          <div className={`fixed bottom-0 right-0 mb-12 mr-12 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-99 ${errorAlertVisable ? 'block' : 'hidden'}`}>
+          <div className={`fixed bottom-0 right-0 mb-12 mr-12 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-[100] ${errorAlertVisable ? 'block' : 'hidden'}`}>
             {errorAlertMessage}
           </div>
 
@@ -1723,10 +1724,12 @@ const Profile = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            zIndex: 50,
           },
           content: {
             position: 'relative',
             margin: 'auto',
+            zIndex: 50, 
           },
         }}
       >
