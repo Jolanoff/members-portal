@@ -15,13 +15,13 @@ Follow these steps to get the application up and running on your local machine:
 1. Clone the repository:
 `git clone https://github.com/Jolanoff/members-portal.git`
 
-2. Navigate into the front end directory:
+2. Navigate into the frontend directory:
 `cd members-portal/front-end`
 
 3. install the necessary packages:
 `npm install`
 
-4. Navigate into the front end directory:
+4. Navigate into the server directory:
 `cd members-portal/server`
 
 5. install the necessary packages:
