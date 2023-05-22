@@ -31,7 +31,7 @@ Follow these steps to get the application up and running on your local machine:
 `docker-compose up`
 
 7. Install the database and run it via MySQL Workbench:
-note: I still have to upload the database to the folder directory
+note: I still have to upload the database to the directory
 
 8. Create your first user in the database and in keycloak:
 note: This is yet not created manually and need to be fixed
