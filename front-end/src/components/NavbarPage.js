@@ -3,12 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { Navbar, Dropdown, Avatar } from 'flowbite-react'
 import { useKeycloak } from '../KeycloakContext';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate , useLocation} from 'react-router-dom';
 const NavbarPage = () => {
     const { userProfile: initialUserProfile, keycloak, authenticated } = useKeycloak();
     const [userProfile, setUserProfile] = useState(initialUserProfile);
     const isAdmin = authenticated && keycloak.hasRealmRole('admin');
     const navigate = useNavigate();
+    const location = useLocation();
 
     const redirectToProfile = async () => {
         try {
@@ -81,7 +82,7 @@ const NavbarPage = () => {
             <div className="flex md:order-2">
             <Navbar.Brand type="button" 
             href='https://github.com/Jolanoff/members-portal/issues'
-            class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">Report a bug</Navbar.Brand>
+            class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">Give feedback</Navbar.Brand>
 
                 <Dropdown
                     arrowIcon={false}
@@ -115,12 +116,12 @@ const NavbarPage = () => {
             </div>
             <Navbar.Collapse>
                 <label className='cursor-pointer'>
-                    <Navbar.Link onClick={navigateToHome} active>
+                    <Navbar.Link onClick={navigateToHome} active={location.pathname === '/'}>
                         Home
                     </Navbar.Link>
                 </label>
                 <label className='cursor-pointer'>
-                    <Navbar.Link onClick={navigateToMembers}>
+                    <Navbar.Link onClick={navigateToMembers} active={location.pathname === '/members'}>
                         Members
                     </Navbar.Link>
                 </label>

@@ -13,7 +13,7 @@ const UsersTable = () => {
     // Data returned from the database will be passed to data
     const [data, setData] = useState([]);
     // the selected members data will be passed to the selectedData state
-    const [selectedData, setSelectedData] = useState({ firstName: '', lastName: '', username: '', email: '', role: '', phone_number: '', student_number :   '', card_number: '', date_of_joining: '',birthday: '',nationality: ''});
+    const [selectedData, setSelectedData] = useState({ firstName: '', lastName: '', username: '', email: '', role: '', phone_number: '', student_number: '', card_number: '', date_of_joining: '', birthday: '', nationality: '' });
 
 
     // State for the create user action
@@ -42,11 +42,11 @@ const UsersTable = () => {
                 }
             });
             setData(response.data);
+            setFilteredMembers(response.data); 
         } catch (err) {
             console.log(err);
         }
     };
-
     useEffect(() => {
         fetchData();
     }, []);
@@ -98,9 +98,9 @@ const UsersTable = () => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
-    
+
         return `${year}-${month}-${day}`;
-      }
+    }
     const viewMember = async (id) => {
         const res = await axios.get(`${process.env.REACT_APP_API_URL}/getUserForAdmin/` + id, {
             headers: {
@@ -178,7 +178,7 @@ const UsersTable = () => {
             SetUpdateModal(true);
         }
     };
-    const currentData = data;
+
 
     // Update Request
     const handleUpdate = async () => {
@@ -276,19 +276,30 @@ const UsersTable = () => {
     }
     const [filteredMembers, setFilteredMembers] = useState([]);
     const [userInput, setUserInput] = useState('');
+    const [activePage, setActivePage] = useState(1);
+    const [itemsPerPage] = useState(10);
+
+    // Filtering and search logic
     const onSearchChange = (e) => {
         const inputValue = e.target.value.toLowerCase();
         const filtered = data.filter((member) =>
-            member.first_name.toLowerCase().startsWith(inputValue) ||
-            member.last_name.toLowerCase().startsWith(inputValue)
+            member.first_name.toLowerCase().includes(inputValue) ||
+            member.last_name.toLowerCase().includes(inputValue) ||
+            member.email.toLowerCase().includes(inputValue)
+           
         );
+    
         setFilteredMembers(filtered);
     };
-    const [activePage, setActivePage] = useState(1);
-    const [itemsPerPage] = useState(10);
+
     const handlePageChange = (pageNumber) => {
         setActivePage(pageNumber);
     };
+
+    const indexLast = activePage * itemsPerPage;
+    const indexFirst = indexLast - itemsPerPage;
+    const currentData = userInput ? filteredMembers.slice(indexFirst, indexLast) : data.slice(indexFirst, indexLast);
+
     return (
         <div className="mx-auto max-w-screen-x2 px-4 lg:px-12">
             <div className="bg-white dark:bg-gray-800 relative shadow-md sm:rounded-lg overflow-hidden">
@@ -321,7 +332,7 @@ const UsersTable = () => {
                         <button type="button" onClick={() => SetCreateModal(true)} className="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2">
                             Create new
                         </button>
-                        
+
 
                     </div>
                 </div>
@@ -341,36 +352,32 @@ const UsersTable = () => {
                         </thead>
                         <tbody>
                             {/* Members content */}
-                            {
-                                filteredMembers.length > 0 || userInput
-                                    ? filteredMembers
-                                        .slice((activePage - 1) * itemsPerPage, activePage * itemsPerPage)
-                                        .map(MemberViewItem)
-                                    : data
-                                        .slice((activePage - 1) * itemsPerPage, activePage * itemsPerPage)
-                                        .map(MemberViewItem)
+                            {filteredMembers.length === 0
+                                ? <p className='m-10 font-semibold text-gray-600'>No search results.</p>
+                                : currentData.map(MemberViewItem)
                             }
                         </tbody>
                     </table>
                 </div>
                 {/* table footer */}
                 <nav className="flex flex-col md:flex-row justify-center items-center md:items-center space-y-3 md:space-y-0 p-4">
-                    <Pagination
-                        activePage={activePage}
-                        itemsCountPerPage={itemsPerPage}
-                        totalItemsCount={userInput || filteredMembers.length > 0 ? filteredMembers.length : data.length}
-                        pageRangeDisplayed={5}
-                        onChange={handlePageChange}
-                        innerClass="flex justify-center mt-2"
-                        linkClass="mx-1 flex h-9 w-9 items-center justify-center rounded-full border border-blue-gray-100 bg-blue p-0 text-sm"
-                        itemClass="text-blue-gray-500 hover:bg-light-300"
-                        activeLinkClass="text-white bg-blue-500 hover:bg-blue-600"
-                        prevPageText={<FaArrowLeft className='text-gray-500' />}
-                        lastPageText={<FaAngleDoubleRight className='text-gray-500' />}
-                        firstPageText={<FaAngleDoubleLeft className='text-gray-500' />}
-                        nextPageText={<FaArrowRight className='text-gray-500' />}
-                    />
-
+                    {!userInput && filteredMembers.length > itemsPerPage && (
+                        <Pagination
+                            activePage={activePage}
+                            itemsCountPerPage={itemsPerPage}
+                            totalItemsCount={userInput || filteredMembers.length > 0 ? filteredMembers.length : data.length}
+                            pageRangeDisplayed={5}
+                            onChange={handlePageChange}
+                            innerClass="flex justify-center mt-2"
+                            linkClass="mx-1 flex h-9 w-9 items-center justify-center rounded-full border border-blue-gray-100 bg-blue p-0 text-sm"
+                            itemClass="text-blue-gray-500 hover:bg-light-300"
+                            activeLinkClass="text-white bg-blue-500 hover:bg-blue-600"
+                            prevPageText={<FaArrowLeft className='text-gray-500' />}
+                            lastPageText={<FaAngleDoubleRight className='text-gray-500' />}
+                            firstPageText={<FaAngleDoubleLeft className='text-gray-500' />}
+                            nextPageText={<FaArrowRight className='text-gray-500' />}
+                        />
+                    )}
                 </nav>
                 {/* view modal */}
                 <Modal
@@ -414,7 +421,7 @@ const UsersTable = () => {
                                         <label htmlFor="firstName" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Phone number : {selectedData.phone_number}</label>
                                         <label htmlFor="lastName" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Date of birth : {selectedData.birthday}</label>
                                         <label htmlFor="firstName" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">nationality : {selectedData.nationality}</label>
-                                        <label htmlFor="firstName" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Date of joining the team : {selectedData.date_of_joining}</label>                                        
+                                        <label htmlFor="firstName" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Date of joining the team : {selectedData.date_of_joining}</label>
                                     </div>
                                 </div>
                                 <div className='flex'>
