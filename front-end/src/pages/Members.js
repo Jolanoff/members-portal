@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { FaSearch } from 'react-icons/fa'
 import axios from 'axios';
 import PaginationTool from './tools/PaginationTool';
-import Search from './tools/Search';
 import { Link } from 'react-router-dom';
 import { useKeycloak } from '../KeycloakContext'
 
@@ -25,26 +25,43 @@ function Members() {
   const { keycloak } = useKeycloak();
 
   const [data, setData] = useState([]);
+  const [filteredMembers, setFilteredMembers] = useState([]);
   const [activeTab, setActiveTab] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [dataPerpage] = useState(8);
 
 
+  // Fetch Data
   const fetchData = async () => {
     try {
       const response = await axios.get(`${process.env.REACT_APP_API_URL}/users`, {
         headers: {
           Authorization: `Bearer ${keycloak.token}`,
+          'x-user-role': keycloak.hasRealmRole('admin') ? 'admin' : (keycloak.hasRealmRole('former_member') ? 'former_member' : 'user'),
           'Content-Type': 'application/json',
         }
-
       });
-      setData(response.data);
 
+      setData(response.data);
+      setFilteredMembers(response.data);
     } catch (err) {
       console.log(err);
     }
   };
+  const [userRole, setUserRole] = useState(null);
+
+  useEffect(() => {
+    setUserRole(keycloak.hasRealmRole('admin') ? 'admin' : (keycloak.hasRealmRole('former_member') ? 'former_member' : 'user'));
+  }, []);
+  let placeholderText;
+  if (userRole === 'former_member') {
+    placeholderText = "Search for name or email";
+  } else {
+    placeholderText = "Search for name, email or phone number";
+  }
+
+
+
 
   useEffect(() => {
     fetchData();
@@ -72,17 +89,46 @@ function Members() {
             <a href="#">{item.first_name + " " + item.last_name}</a>
           </h3>
           <p>{item.email}</p>
+          <p>{item.phone_number}</p>
         </div>
       </Link>
     )
   }
 
   // pagination  
-  const filteredSet = data.filter(x => activeTab === 0 || (activeTab === 1 && x.current) || (activeTab === 2 && !x.current));
+  // Filtered Set based on activeTab and search input
+  const filteredSet = filteredMembers.filter(x => activeTab === 0 || (activeTab === 1 && x.current) || (activeTab === 2 && !x.current));
   const indexLast = currentPage * dataPerpage;
   const indexFirst = indexLast - dataPerpage;
+  // Current Data to be displayed based on pagination
   const currentData = filteredSet.length > dataPerpage ? filteredSet.slice(indexFirst, indexLast) : filteredSet;
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const [userInput, setUserInput] = useState('');
+
+  const onSearchChange = (e) => {
+    const inputValue = e.target.value.toLowerCase();
+    const canSeePhoneNumber = !keycloak.hasRealmRole('former_member');
+
+    const filtered = data.filter((member) => {
+      const name = ((member.first_name || '') + ' ' + (member.last_name || '')).toLowerCase();
+      const email = (member.email || '').toLowerCase();
+      const phoneNumberString = (member.phone_number ? member.phone_number.toString() : '');
+
+      return (
+        name.includes(inputValue) ||
+        email.includes(inputValue) ||
+        (canSeePhoneNumber && phoneNumberString.includes(inputValue))
+      );
+    });
+    setFilteredMembers(filtered);
+  };
+
+
+
+
+
+
 
   return (
     <div>
@@ -123,7 +169,29 @@ function Members() {
                 <li className="mr-2">
                 </li>
                 <li className="mr-2">
-                  <Search />
+                  <div className="relative text-gray-600 focus-within:text-gray-400">
+                    <span className="absolute inset-y-0 left-0 flex items-center pl-2">
+                      <button type="submit" className="p-1 focus:outline-none focus:shadow-outline">
+                        <FaSearch />
+                      </button>
+                    </span>
+                    <input
+                      value={userInput}
+                      onChange={(e) => {
+                        setUserInput(e.target.value);
+                        onSearchChange(e);
+                      }}
+                      type="text"
+                      id="simple-search"
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                      placeholder={placeholderText}
+                      required=""
+                    />
+                  </div>
+
+
+
+
 
                 </li>
 

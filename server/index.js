@@ -172,12 +172,22 @@ app.get('/getUserForAdmin/:id', keycloak.protect('admin'), async (req, res) => {
 
 //------------------------------ Get data for the members page ------------------------------
 app.get('/users', keycloak.protect(), (req, res) => {
-  const q = "SELECT id, first_name, last_name, email, profile_pic ,current FROM users WHERE status = true"
+  const requestUserRole = req.headers['x-user-role'];
+
+  let q;
+  
+  if (requestUserRole === 'former_member') {
+    q = "SELECT id, first_name, last_name, email, profile_pic ,current FROM users WHERE status = true";
+  } else {
+    q = "SELECT id, first_name, last_name, email, phone_number, profile_pic ,current FROM users WHERE status = true";
+  }
+  
   db.query(q, (err, data) => {
-    if (err) return res.json(err)
-    return res.send(data)
-  })
-})
+    if (err) return res.json(err);
+    return res.send(data);
+  });
+});
+
 //------------------------------ Get all the members for the autosuggest ------------------------------
 
 app.get('/api/users/suggest', keycloak.protect(), (req, res) => {
@@ -190,7 +200,7 @@ app.get('/api/users/suggest', keycloak.protect(), (req, res) => {
 app.get('/api/users/search', keycloak.protect(), (req, res) => {
   const searchTerm = req.query.search;
   const q = `
-    SELECT id, first_name, last_name, profile_pic FROM users
+    SELECT id, first_name, last_name, email, profile_pic FROM users
     WHERE first_name LIKE ? OR last_name LIKE ?;
   `;
   const values = [`%${searchTerm}%`, `%${searchTerm}%`];
