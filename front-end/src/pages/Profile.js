@@ -916,7 +916,7 @@ const Profile = () => {
                 {isAdmin() || isCurrentUser ? (
                   <>
                     <div>
-                      <p className="text-gray-600">Student number:</p>
+                      <p className="text-gray-600">Student/Employ number:</p>
                       <p className="font-semibold">{data.student_number}</p>
                     </div>
                     <div>
@@ -1459,7 +1459,7 @@ const Profile = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="user" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Assign to: </label>
+                  <label htmlFor="user" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Contributors: </label>
                   <UserAutosuggest keycloak={keycloak} onUsersSelected={handleUsersSelected} defaultSelectedUsers={defaultUsers} currentUserId={id} />
                 </div>
                 <div>
@@ -1619,7 +1619,7 @@ const Profile = () => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="user" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Assign to: </label>
+                  <label htmlFor="user" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Contributors: </label>
                   <UserAutosuggest keycloak={keycloak} onUsersSelected={handleUsersSelected} defaultSelectedUsers={assignedUsers} currentUserId={id} />
                 </div>
                 <div>
@@ -1775,7 +1775,7 @@ const Profile = () => {
                   name="phone"
                   id="phone"
                   onKeyPress={(e) => {
-                    if (!/[0-9]/.test(e.key)) {
+                    if (!/[0-9+]/.test(e.key)) {
                       e.preventDefault();
                     }
                   }}
@@ -1804,7 +1804,7 @@ const Profile = () => {
               </div>
               <div className="mt-4">
                 <label htmlFor="studentNum" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                  Student number:
+                  Student/Employ number:
                 </label>
                 <input
                   type="text"

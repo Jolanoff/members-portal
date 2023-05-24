@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Dropdown } from 'flowbite-react';
 import { FaBan, FaEdit, FaWindowClose, FaRedoAlt, FaArrowLeft, FaArrowRight, FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa'
-
+import { Link } from 'react-router-dom';
 import Modal from 'react-modal';
 import { useKeycloak } from '../../KeycloakContext'
 import Pagination from 'react-js-pagination';
@@ -42,7 +42,7 @@ const UsersTable = () => {
                 }
             });
             setData(response.data);
-            setFilteredMembers(response.data); 
+            setFilteredMembers(response.data);
         } catch (err) {
             console.log(err);
         }
@@ -52,11 +52,14 @@ const UsersTable = () => {
     }, []);
 
 
+
     // The content that shows up in the table
     const MemberViewItem = (item) => {
         return (
             <tr key={item.id} className="border-b dark:border-gray-700">
-                <th scope="row" className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white">{item.first_name + " " + item.last_name}</th>
+                <Link to={`/members/${item.id}`}>
+                    <th scope="row" className="hover:text-blue-600 px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white">{item.first_name + " " + item.last_name}</th>
+                </Link>
                 <td className="px-4 py-3">{item.email}</td>
                 <td className="px-4 py-3">{item.student_number}</td>
                 <td className="px-4 py-3">{item.card_number}</td>
@@ -286,9 +289,9 @@ const UsersTable = () => {
             member.first_name.toLowerCase().includes(inputValue) ||
             member.last_name.toLowerCase().includes(inputValue) ||
             member.email.toLowerCase().includes(inputValue)
-           
+
         );
-    
+
         setFilteredMembers(filtered);
     };
 
@@ -320,7 +323,7 @@ const UsersTable = () => {
                                         setUserInput(e.target.value);
                                         onSearchChange(e);
                                     }}
-                                    type="text" id="simple-search" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Search" required="" />
+                                    type="text" id="simple-search" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Search for name or email" required="" />
                             </div>
                             <button type="button" onClick={() => refresh()} className=" h-full text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center ml-5">
                                 <FaRedoAlt />
