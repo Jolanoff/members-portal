@@ -178,7 +178,7 @@ function Members() {
                     />
                   </Tabs.Group>
                 </li>
-                <li className="">
+                <li className="w-100">
                   <div className="relative text-gray-600 focus-within:text-gray-400">
                     <span className="absolute inset-y-0 left-0 flex items-center pl-2">
                       <button type="submit" className="p-1 focus:outline-none focus:shadow-outline">
@@ -186,14 +186,13 @@ function Members() {
                       </button>
                     </span>
                     <input
-
                       value={userInput}
                       onChange={(e) => {
                         setUserInput(e.target.value);
                         onSearchChange(e);
                       }}
                       type="text"
-                      className=" h-12 w-[21rem] bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-12 py-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                      className="h-12 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-12 py-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                       placeholder={placeholderText}
                       required=""
                     />
