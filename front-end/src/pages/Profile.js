@@ -916,7 +916,7 @@ const Profile = () => {
                 {isAdmin() || isCurrentUser ? (
                   <>
                     <div>
-                      <p className="text-gray-600">Student/Employ number:</p>
+                      <p className="text-gray-600">Student/Employee number:</p>
                       <p className="font-semibold">{data.student_number}</p>
                     </div>
                     <div>
@@ -1804,7 +1804,7 @@ const Profile = () => {
               </div>
               <div className="mt-4">
                 <label htmlFor="studentNum" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                  Student/Employ number:
+                  Student/Employee number:
                 </label>
                 <input
                   type="text"

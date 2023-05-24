@@ -7,12 +7,36 @@ import { useKeycloak } from '../../KeycloakContext'
 import { FaRedoAlt, FaWindowClose, FaEye, FaTrashRestore, FaTrashAlt } from 'react-icons/fa'
 
 const RestoreTable = () => {
+
+
     const [data, setData] = useState([]);
     const { keycloak } = useKeycloak();
     const [selectedData, setSelectedData] = useState({ firstName: '', lastName: '', username: '', email: '', role: '', phone_number: '', student_number :   '', card_number: '', date_of_joining: '',birthday: '',nationality: ''});
     const [errorMessage, setErrorMessage] = useState('');
     // View modal state
     const [viewModal, SetViewModal] = useState(false);
+
+
+
+    //handle success and error alerts
+    const [successAlertVisable, setSuccessAlertVisable] = useState(false);
+    const [successAlertMessage, setSuccessAlertMessage] = useState('');
+    const showSuccessAlert = () => {
+        setSuccessAlertVisable(true);
+        setTimeout(() => {
+            setSuccessAlertVisable(false);
+        }, 2000);
+    };
+    const [errorAlertVisable, setErrorAlertVisable] = useState(false);
+    const [errorAlertMessage, setErrorAlertMessage] = useState('')
+    const showErrorAlert = () => {
+        setErrorAlertVisable(true);
+        setTimeout(() => {
+            setErrorAlertVisable(false);
+        }, 2000);
+    };
+
+
     const fetchData = async () => {
         try {
             const response = await axios.get(`${process.env.REACT_APP_API_URL}/admin/disabled`, {
@@ -104,10 +128,12 @@ const RestoreTable = () => {
                 },
             });
             const responseData = await response.data;
-            setErrorMessage(responseData);
+            setSuccessAlertMessage(responseData);
+            showSuccessAlert()
             fetchData();
         } catch (err) {
-            setErrorMessage(err.response?.data || 'An error occurred');
+            setErrorAlertMessage(err.response?.data || 'An error occurred');
+            showErrorAlert();
         }
     };
 
@@ -123,10 +149,12 @@ const RestoreTable = () => {
                     },
                 });
                 const responseData = await response.data;
-                setErrorMessage(responseData);
+                setSuccessAlertMessage(responseData);
+                showSuccessAlert()
                 fetchData();
             } catch (err) {
-                setErrorMessage(err.response?.data || 'An error occurred');
+                setErrorAlertMessage(err.response?.data || 'An error occurred');
+                showErrorAlert()
             }
         }
     };
@@ -134,15 +162,10 @@ const RestoreTable = () => {
 
     const refresh = async () => {
         fetchData()
+        setSuccessAlertMessage('refreshed successfully')
+        showSuccessAlert()
     }
-
-
-
-
     const currentData = data;
-
-
-
     return (
         <div className="mx-auto max-w-screen-x2 px-4 lg:px-12">
             <div className="bg-white dark:bg-gray-800 relative shadow-md sm:rounded-lg overflow-hidden">
@@ -162,9 +185,7 @@ const RestoreTable = () => {
                             <button type="button" onClick={() => refresh()} className=" h-full text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center ml-5">
                                 <FaRedoAlt />
                             </button>
-
                         </form>
-
                     </div>
                     {errorMessage && <p className="error-message italic font-semibold">{errorMessage}</p>}
 
@@ -190,9 +211,18 @@ const RestoreTable = () => {
                         </tbody>
                     </table>
                 </div>
+                
                 {/* table footer */}
                 <nav className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4" aria-label="Table navigation">
                 </nav>
+                
+                <div className={`fixed bottom-0 right-0 mb-12 mr-12 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-[100] ${successAlertVisable ? 'block' : 'hidden'}`}>
+                    {successAlertMessage}
+                </div>
+                <div className={`fixed bottom-0 right-0 mb-12 mr-12 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-[100] ${errorAlertVisable ? 'block' : 'hidden'}`}>
+                    {errorAlertMessage}
+                </div>
+
                 {/* view modal */}
                 <Modal
                     isOpen={viewModal}

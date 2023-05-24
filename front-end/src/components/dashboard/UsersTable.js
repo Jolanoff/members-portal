@@ -32,6 +32,28 @@ const UsersTable = () => {
     //everything that the server returns printed in the error message
     const [errorMessage, setErrorMessage] = useState('');
 
+
+
+    //handle success and error alerts
+    const [successAlertVisable, setSuccessAlertVisable] = useState(false);
+    const [successAlertMessage, setSuccessAlertMessage] = useState('');
+    const showSuccessAlert = () => {
+        setSuccessAlertVisable(true);
+        setTimeout(() => {
+            setSuccessAlertVisable(false);
+        }, 2000);
+    };
+    const [errorAlertVisable, setErrorAlertVisable] = useState(false);
+    const [errorAlertMessage, setErrorAlertMessage] = useState('')
+    const showErrorAlert = () => {
+        setErrorAlertVisable(true);
+        setTimeout(() => {
+            setErrorAlertVisable(false);
+        }, 2000);
+    };
+
+
+
     // getting the data from the database
     const fetchData = async () => {
         try {
@@ -80,6 +102,7 @@ const UsersTable = () => {
         )
     }
     const updatePassword = async (id) => {
+
         const res = await axios.get(`${process.env.REACT_APP_API_URL}/getUserForAdmin/` + id, {
             headers: {
                 Authorization: `Bearer ${keycloak.token}`,
@@ -104,6 +127,7 @@ const UsersTable = () => {
 
         return `${year}-${month}-${day}`;
     }
+
     const viewMember = async (id) => {
         const res = await axios.get(`${process.env.REACT_APP_API_URL}/getUserForAdmin/` + id, {
             headers: {
@@ -135,8 +159,14 @@ const UsersTable = () => {
     };
 
     const handlePasswordChange = async () => {
+        if(!newPassword || !confirmNewPassword){
+            setErrorAlertMessage("Please fill in all fields");
+            showErrorAlert()
+            return;
+        }
         if (newPassword !== confirmNewPassword) {
-            setErrorMessage("New password and confirmation do not match");
+            setErrorAlertMessage("New password and confirmation do not match");
+            showErrorAlert()
             return;
         }
         try {
@@ -151,12 +181,13 @@ const UsersTable = () => {
                         Authorization: `Bearer ${keycloak.token}`,
                     },
                 });
-            setErrorMessage(response.data)
+            setSuccessAlertMessage(response.data);
+            showSuccessAlert()
         } catch (err) {
-            setErrorMessage(err.response.data);
+            setErrorAlertMessage(err.response.data);
+            showErrorAlert()
         }
     }
-
     // Save the selected members id and data
     const saveData = async (id) => {
         const res = await axios.get(`${process.env.REACT_APP_API_URL}/getUserForAdmin/` + id, {
@@ -194,11 +225,13 @@ const UsersTable = () => {
                 },
             });
             const responseData = await response.data;
-            setErrorMessage(responseData);
+            setSuccessAlertMessage(responseData);
+            showSuccessAlert();
+            SetUpdateModal(false)
             fetchData();
         } catch (err) {
-            setErrorMessage(err.response?.data || 'An error occurred');
-
+            setErrorAlertMessage(err.response?.data || 'An error occurred');
+            showErrorAlert();
         }
     };
 
@@ -214,11 +247,13 @@ const UsersTable = () => {
                 },
             });
             const responseData = await response.data;
-            setErrorMessage(responseData);
-            fetchData();
+            setSuccessAlertMessage(responseData);
+            showSuccessAlert();
             SetUpdateModal(false)
+            fetchData();
         } catch (err) {
-            setErrorMessage(err.response?.data || 'An error occurred');
+            setErrorAlertMessage(err.response?.data || 'An error occurred');
+            showErrorAlert();
         }
     };
 
@@ -248,14 +283,16 @@ const UsersTable = () => {
                     password: '',
                     role: 'user',
                 });
+                setSuccessAlertMessage(responseData);
+                showSuccessAlert();
             }
             const responseData = await response.data;
-            setErrorMessage(responseData);
             fetchData();
-
+            SetCreateModal(false)
 
         } catch (err) {
-            setErrorMessage(err.response?.data || 'An error occurred');
+            setErrorAlertMessage(err.response?.data || 'An error occurred');
+            showErrorAlert()
         }
     };
 
@@ -276,6 +313,8 @@ const UsersTable = () => {
     }
     const refresh = async () => {
         fetchData()
+        setSuccessAlertMessage('refreshed successfully')
+        showSuccessAlert()
     }
     const [filteredMembers, setFilteredMembers] = useState([]);
     const [userInput, setUserInput] = useState('');
@@ -291,7 +330,6 @@ const UsersTable = () => {
             member.email.toLowerCase().includes(inputValue)
 
         );
-
         setFilteredMembers(filtered);
     };
 
@@ -346,7 +384,7 @@ const UsersTable = () => {
                             <tr>
                                 <th scope="col" className="px-4 py-3">Full name</th>
                                 <th scope="col" className="px-4 py-3">Email</th>
-                                <th scope="col" className="px-4 py-3">Student number</th>
+                                <th scope="col" className="px-4 py-3">Student/Employee number</th>
                                 <th scope="col" className="px-4 py-3">Card number</th>
                                 <th scope="col" className="px-4 py-3">
                                     <span className="sr-only">Actions</span>
@@ -382,6 +420,12 @@ const UsersTable = () => {
                         />
                     )}
                 </nav>
+                <div className={`fixed bottom-0 right-0 mb-12 mr-12 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-[100] ${successAlertVisable ? 'block' : 'hidden'}`}>
+                    {successAlertMessage}
+                </div>
+                <div className={`fixed bottom-0 right-0 mb-12 mr-12 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-[100] ${errorAlertVisable ? 'block' : 'hidden'}`}>
+                    {errorAlertMessage}
+                </div>
                 {/* view modal */}
                 <Modal
                     isOpen={viewModal}
@@ -436,6 +480,7 @@ const UsersTable = () => {
 
                             </form>
                         </div>
+
                     </div>
                 </Modal>
                 {/* Create modal */}
@@ -523,9 +568,6 @@ const UsersTable = () => {
                                         </select>
 
                                     </div>
-
-
-
                                 </div>
                                 <div className='flex'>
 
@@ -540,9 +582,9 @@ const UsersTable = () => {
                                     </button>
                                 </div>
                                 {errorMessage && <p className="error-message italic font-semibold">{errorMessage}</p>}
-
                             </form>
                         </div>
+
                     </div>
 
                 </Modal>
