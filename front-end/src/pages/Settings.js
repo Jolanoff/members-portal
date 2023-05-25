@@ -36,7 +36,6 @@ const Settings = () => {
             const roles = keycloak.realmAccess.roles;
             setHasFormerMemberRole(roles.includes('former_member'));
 
-
         } catch (err) {
             console.log(err);
         }

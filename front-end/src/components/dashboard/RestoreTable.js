@@ -325,8 +325,6 @@ const RestoreTable = () => {
                                         Close
                                     </button>
                                 </div>
-                              
-
                             </form>
                         </div>
                     </div>
