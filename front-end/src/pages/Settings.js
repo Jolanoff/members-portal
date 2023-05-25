@@ -75,8 +75,9 @@ const Settings = () => {
                         },
                     }
                 );
-                console.log(passwordResponse);
-                setErrorMsg("Password updated successfully");
+                
+                setSuccessAlertMessage("Password updated successfully");
+                showSuccessAlert()
             }
             // Update settings
             const response = await axios.put(
@@ -92,11 +93,13 @@ const Settings = () => {
                     },
                 }
             );
-            console.log(response);
-            setErrorMsg("Settings updated successfully");
+           
+            setSuccessAlertMessage("Settings updated successfully");
+            showSuccessAlert();
 
         } catch (err) {
-            setErrorMsg(err.response.data);
+            setErrorAlertMessage(err.response.data);
+            showErrorAlert()
         }
     };
 
@@ -133,6 +136,24 @@ const Settings = () => {
         } catch (err) {
             console.error(err);
         }
+    };
+    
+    //handle success and error alerts
+    const [successAlertVisable, setSuccessAlertVisable] = useState(false);
+    const [successAlertMessage, setSuccessAlertMessage] = useState('');
+    const showSuccessAlert = () => {
+        setSuccessAlertVisable(true);
+        setTimeout(() => {
+            setSuccessAlertVisable(false);
+        }, 2000);
+    };
+    const [errorAlertVisable, setErrorAlertVisable] = useState(false);
+    const [errorAlertMessage, setErrorAlertMessage] = useState('')
+    const showErrorAlert = () => {
+        setErrorAlertVisable(true);
+        setTimeout(() => {
+            setErrorAlertVisable(false);
+        }, 2000);
     };
 
     return (
@@ -233,6 +254,13 @@ const Settings = () => {
                             Leave the team
                         </button>
                     )}
+                </div>
+
+                <div className={`fixed bottom-0 right-0 mb-12 mr-12 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-[100] ${successAlertVisable ? 'block' : 'hidden'}`}>
+                    {successAlertMessage}
+                </div>
+                <div className={`fixed bottom-0 right-0 mb-12 mr-12 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-[100] ${errorAlertVisable ? 'block' : 'hidden'}`}>
+                    {errorAlertMessage}
                 </div>
 
                 {showModal && (

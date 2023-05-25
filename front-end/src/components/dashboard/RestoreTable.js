@@ -325,7 +325,7 @@ const RestoreTable = () => {
                                         Close
                                     </button>
                                 </div>
-                                {errorMessage && <p className="error-message">{errorMessage}</p>}
+                              
 
                             </form>
                         </div>
