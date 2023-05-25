@@ -2,16 +2,17 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Dropdown } from 'flowbite-react';
 import Modal from 'react-modal';
+import Pagination from 'react-js-pagination';
 
 import { useKeycloak } from '../../KeycloakContext'
-import { FaRedoAlt, FaWindowClose, FaEye, FaTrashRestore, FaTrashAlt } from 'react-icons/fa'
+import { FaRedoAlt, FaWindowClose, FaEye, FaTrashRestore, FaTrashAlt, FaArrowLeft, FaArrowRight, FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa'
 
 const RestoreTable = () => {
 
 
     const [data, setData] = useState([]);
     const { keycloak } = useKeycloak();
-    const [selectedData, setSelectedData] = useState({ firstName: '', lastName: '', username: '', email: '', role: '', phone_number: '', student_number :   '', card_number: '', date_of_joining: '',birthday: '',nationality: ''});
+    const [selectedData, setSelectedData] = useState({ firstName: '', lastName: '', username: '', email: '', role: '', phone_number: '', student_number: '', card_number: '', date_of_joining: '', birthday: '', nationality: '' });
     const [errorMessage, setErrorMessage] = useState('');
     // View modal state
     const [viewModal, SetViewModal] = useState(false);
@@ -165,7 +166,34 @@ const RestoreTable = () => {
         setSuccessAlertMessage('refreshed successfully')
         showSuccessAlert()
     }
-    const currentData = data;
+    const [filteredMembers, setFilteredMembers] = useState([]);
+    const [userInput, setUserInput] = useState('');
+    const [activePage, setActivePage] = useState(1);
+    const [itemsPerPage] = useState(10);
+
+    // Filtering and search logic
+    const onSearchChange = (e) => {
+        const inputValue = e.target.value.toLowerCase();
+        const filtered = data.filter((member) =>
+            member.first_name.toLowerCase().includes(inputValue) ||
+            member.last_name.toLowerCase().includes(inputValue) ||
+            member.email.toLowerCase().includes(inputValue)
+
+        );
+        setFilteredMembers(filtered);
+    };
+
+    const handlePageChange = (pageNumber) => {
+        setActivePage(pageNumber);
+    };
+
+    const indexLast = activePage * itemsPerPage;
+    const indexFirst = indexLast - itemsPerPage;
+    const currentData = userInput ? filteredMembers.slice(indexFirst, indexLast) : data.slice(indexFirst, indexLast);
+
+
+
+
     return (
         <div className="mx-auto max-w-screen-x2 px-4 lg:px-12">
             <div className="bg-white dark:bg-gray-800 relative shadow-md sm:rounded-lg overflow-hidden">
@@ -180,14 +208,19 @@ const RestoreTable = () => {
                                         <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
                                     </svg>
                                 </div>
-                                <input type="text" id="simple-search" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Search" required="" />
+                                <input
+                                    value={userInput}
+                                    onChange={(e) => {
+                                        setUserInput(e.target.value);
+                                        onSearchChange(e);
+                                    }}
+                                    type="text" id="simple-search" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Search for name or email" required="" />
                             </div>
                             <button type="button" onClick={() => refresh()} className=" h-full text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center ml-5">
                                 <FaRedoAlt />
                             </button>
                         </form>
                     </div>
-                    {errorMessage && <p className="error-message italic font-semibold">{errorMessage}</p>}
 
                 </div>
 
@@ -211,11 +244,29 @@ const RestoreTable = () => {
                         </tbody>
                     </table>
                 </div>
-                
+
                 {/* table footer */}
-                <nav className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4" aria-label="Table navigation">
+                <nav className="flex flex-col md:flex-row justify-center items-center md:items-center space-y-3 md:space-y-0 p-4">
+                    {!userInput && filteredMembers.length > itemsPerPage && (
+                        <Pagination
+                            activePage={activePage}
+                            itemsCountPerPage={itemsPerPage}
+                            totalItemsCount={userInput || filteredMembers.length > 0 ? filteredMembers.length : data.length}
+                            pageRangeDisplayed={5}
+                            onChange={handlePageChange}
+                            innerClass="flex justify-center mt-2"
+                            linkClass="mx-1 flex h-9 w-9 items-center justify-center rounded-full border border-blue-gray-100 bg-blue p-0 text-sm"
+                            itemClass="text-blue-gray-500 hover:bg-light-300"
+                            activeLinkClass="text-white bg-blue-500 hover:bg-blue-600"
+                            prevPageText={<FaArrowLeft className='text-gray-500' />}
+                            lastPageText={<FaAngleDoubleRight className='text-gray-500' />}
+                            firstPageText={<FaAngleDoubleLeft className='text-gray-500' />}
+                            nextPageText={<FaArrowRight className='text-gray-500' />}
+                        />
+                    )}
+
                 </nav>
-                
+
                 <div className={`fixed bottom-0 right-0 mb-12 mr-12 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-[100] ${successAlertVisable ? 'block' : 'hidden'}`}>
                     {successAlertMessage}
                 </div>
