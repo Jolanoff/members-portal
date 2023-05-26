@@ -175,13 +175,13 @@ app.get('/users', keycloak.protect(), (req, res) => {
   const requestUserRole = req.headers['x-user-role'];
 
   let q;
-  
+
   if (requestUserRole === 'former_member') {
     q = "SELECT id, first_name, last_name, email, profile_pic ,current FROM users WHERE status = true";
   } else {
     q = "SELECT id, first_name, last_name, email, phone_number, profile_pic ,current FROM users WHERE status = true";
   }
-  
+
   db.query(q, (err, data) => {
     if (err) return res.json(err);
     return res.send(data);
@@ -1629,4 +1629,61 @@ app.put('/user/:id/profile', keycloak.protect(), (req, res) => {
   } catch (error) {
     return res.status(500).json({ message: 'Internal server error', error });
   }
+});
+
+// ------------------------------ Get tags for admin dashboard ------------------------------
+
+app.get('/tags', keycloak.protect('admin'), (req, res) => {
+  let q;
+  q = "SELECT * FROM tags";
+  db.query(q, (err, data) => {
+    if (err) return res.json(err);
+    return res.send(data);
+  });
+});
+// ------------------------------ create new tags for admin dashboard ------------------------------
+app.post('/tags', keycloak.protect('admin'), (req, res) => {
+  const { tagName } = req.body;
+
+  if (!tagName) {
+    return res.status(400).json({ error: "Tag name is required" });
+  }
+
+  const checkQuery = "SELECT * FROM tags WHERE tag_name = ?";
+
+  db.query(checkQuery, [tagName], (err, data) => {
+    if (err) {
+      return res.status(500).json(err);
+    }
+
+    if (data.length > 0) {
+      return res.status(400).json({ error: "Tag with this name already exists" });
+    }
+
+    const insertQuery = "INSERT INTO tags (tag_name) VALUES (?)";
+    
+    db.query(insertQuery, [tagName], (err, data) => {
+      if (err) {
+        return res.status(500).json(err);
+      }
+
+      return res.status(200).send({ message: 'Tag created successfully' });
+    });
+  });
+});
+
+app.put('/tags/:id', keycloak.protect('admin'), (req, res) => {
+  const { tagName } = req.body;
+  const { id } = req.params;
+
+  if (!tagName) {
+    return res.status(400).json({ error: "Tag name is required" });
+  }
+
+  const q = "UPDATE tags SET tag_name = ? WHERE tag_id = ?";
+
+  db.query(q, [tagName, id], (err, data) => {
+    if (err) return res.status(500).json(err);
+    return res.status(200).send({ message: 'Tag updated successfully' });
+  });
 });
