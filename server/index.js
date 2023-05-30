@@ -1661,7 +1661,7 @@ app.post('/tags', keycloak.protect('admin'), (req, res) => {
     }
 
     const insertQuery = "INSERT INTO tags (tag_name) VALUES (?)";
-    
+
     db.query(insertQuery, [tagName], (err, data) => {
       if (err) {
         return res.status(500).json(err);
@@ -1671,19 +1671,52 @@ app.post('/tags', keycloak.protect('admin'), (req, res) => {
     });
   });
 });
+// ------------------------------ edit tags  for admin dashboard ------------------------------
 
 app.put('/tags/:id', keycloak.protect('admin'), (req, res) => {
   const { tagName } = req.body;
   const { id } = req.params;
 
   if (!tagName) {
-    return res.status(400).json({ error: "Tag name is required" });
+      return res.status(400).json({ error: "Tag name is required" });
   }
 
-  const q = "UPDATE tags SET tag_name = ? WHERE tag_id = ?";
+  const checkTagExistsQuery = "SELECT * FROM tags WHERE tag_name = ? AND tag_id != ?";
 
-  db.query(q, [tagName, id], (err, data) => {
+  db.query(checkTagExistsQuery, [tagName, id], (err, data) => {
+      if (err) return res.status(500).json(err);
+
+      // If a tag with the new name exists and it's not the current tag, send an error message
+      if (data.length > 0) {
+          return res.status(400).json({ error: "Tag name already exists" });
+      }
+
+      // If no tag with the new name exists or it's the current tag, proceed with the update
+      const updateTagQuery = "UPDATE tags SET tag_name = ? WHERE tag_id = ?";
+
+      db.query(updateTagQuery, [tagName, id], (err, data) => {
+          if (err) return res.status(500).json(err);
+          return res.status(200).send({ message: 'Tag updated successfully' });
+      });
+  });
+});
+// ------------------------------ delete tags for admin dashboard ------------------------------
+
+app.delete('/tags/:id', keycloak.protect('admin'), (req, res) => {
+  const { id } = req.params;
+
+  // Delete the tag from project_tags table first
+  const deleteProjectTagsQ = "DELETE FROM project_tags WHERE tag_id = ?";
+
+  db.query(deleteProjectTagsQ, [id], (err, data) => {
     if (err) return res.status(500).json(err);
-    return res.status(200).send({ message: 'Tag updated successfully' });
+
+    // If successful, delete from tags table
+    const deleteTagsQ = "DELETE FROM tags WHERE tag_id = ?";
+
+    db.query(deleteTagsQ, [id], (err, data) => {
+      if (err) return res.status(500).json(err);
+      return res.status(200).send({ message: 'Tag deleted successfully' });
+    });
   });
 });

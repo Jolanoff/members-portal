@@ -111,19 +111,19 @@ function Members() {
   //search function
 
   const onSearchChange = (e) => {
-    const inputValue = e.target.value.toLowerCase();
+    const inputValues = e.target.value.toLowerCase().split(' ');
     const canSeePhoneNumber = !keycloak.hasRealmRole('former_member');
-
+  
     const filtered = data.filter((member) => {
       const name = ((member.first_name || '') + ' ' + (member.last_name || '')).toLowerCase();
       const email = (member.email || '').toLowerCase();
       const phoneNumberString = (member.phone_number ? member.phone_number.toString() : '');
-
-      return (
-        name.includes(inputValue) ||
-        email.includes(inputValue) ||
-        (canSeePhoneNumber && phoneNumberString.includes(inputValue))
-      );
+  
+      return inputValues.every(input => (
+        name.includes(input) ||
+        email.includes(input) ||
+        (canSeePhoneNumber && phoneNumberString.includes(input))
+      ));
     });
 
     if (filtered.length === 0) {

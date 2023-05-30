@@ -14,6 +14,8 @@ const TagControl = () => {
     //modals
     const [createTagModal, setCreateTagModal] = useState(false)
     const [editTagModal, setEditTagModal] = useState(false)
+    const [deleteTagModal, setDeleteTagModal] = useState(false)
+
 
 
     //handle success and error alerts
@@ -62,12 +64,22 @@ const TagControl = () => {
                         className="mr-2 font-medium text-blue-500"
                         onClick={() => {
                             setEditTagModal(true);
-                            setEditingTag(item.tag_name);
+                            setEditingTag(item);
+                            setEditingTagName(item.tag_name);
                         }}
                     >
                         Edit
                     </button>
-                    <button className="text-red-500 font-medium">Delete</button>
+                    <button
+                        className="text-red-500 font-medium"
+                        onClick={() => {
+                            setDeleteTagModal(true);
+                            setEditingTag(item);
+                        }}
+                    >
+                        Delete
+                    </button>
+
                 </div>
             </div>
         )
@@ -97,23 +109,46 @@ const TagControl = () => {
         }
     };
     const [editingTag, setEditingTag] = useState(null);
-    const [editedTagName, setEditedTagName] = useState('');
+    const [editingTagName, setEditingTagName] = useState("");
+
     const editTag = async () => {
         try {
             await axios.put(`${process.env.REACT_APP_API_URL}/tags/${editingTag.tag_id}`,
-                { tagName: editedTagName },
+                { tagName: editingTagName },
                 {
                     headers: {
                         Authorization: `Bearer ${keycloak.token}`,
                     }
                 }
             );
+            setSuccessAlertMessage("Tag Updated successfully")
+            showSuccessAlert();
+            setEditTagModal(false)
             setEditingTag(null); // Reset the editing state
             fetchTags(); // Fetch the updated list of tags
         } catch (err) {
-            console.log(err);
+            setErrorAlertMessage(err.response?.data?.error);
+            showErrorAlert()
         }
     };
+    const deleteTag = async () => {
+        try {
+            await axios.delete(`${process.env.REACT_APP_API_URL}/tags/${editingTag.tag_id}`, {
+                headers: {
+                    Authorization: `Bearer ${keycloak.token}`,
+                }
+            });
+            setSuccessAlertMessage("Tag Deleted successfully")
+            showSuccessAlert();
+            setDeleteTagModal(false)
+            setEditingTag(null); // Reset the editing state
+            fetchTags(); // Fetch the updated list of tags
+        } catch (err) {
+            setErrorAlertMessage(err.response?.data?.error);
+            showErrorAlert()
+        }
+    };
+
     return (
         <>
             <div className="flex flex-col">
@@ -236,8 +271,8 @@ const TagControl = () => {
                                 className="pl-10 pr-4 py-2 border rounded-lg"
                                 type="text"
                                 placeholder="New tag"
-                                value={editingTag}
-                                onChange={e => setEditingTag(e.target.value)}
+                                value={editingTagName}
+                                onChange={e => setEditingTagName(e.target.value)}
                             />
                         </div>
                         <div className='flex'>
@@ -252,7 +287,47 @@ const TagControl = () => {
                     </div>
                 </div>
             </Modal>
+            {/* delete tag modal */}
+            <Modal
+                isOpen={deleteTagModal}
+                onRequestClose={() => { setDeleteTagModal(false) }}
+                contentLabel="Delete tag"
+                className=" flex justify-center mt-48"
+                shouldCloseOnOverlayClick={false}
+                style={{
+                    overlay: {
+                        backgroundColor: 'rgba(196,196,196,0.5)',
+                    }
+                }}
+            >
+                <div className="relative p-4 w-full max-w-2xl h-full md:h-auto">
+                    <div className="relative p-4 bg-white rounded-lg shadow dark:bg-gray-800 sm:p-5">
+                        <div className="flex justify-between items-center pb-4 mb-4 rounded-t border-b sm:mb-5 dark:border-gray-600">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                Delete tag
+                            </h3>
+                            <button type="button"
+                                onClick={() => setDeleteTagModal(false)}
+                                className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-toggle="defaultModal">
+                                <FaWindowClose />
+                            </button>
+                        </div>
 
+                        <div className="mb-4">
+                            <p>Are you sure you want to delete the tag "{editingTag?.tag_name}"?</p>
+                        </div>
+
+                        <div className='flex'>
+                            <button onClick={deleteTag} type="button" className="flex focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+                                Delete
+                            </button>
+                            <button onClick={() => setDeleteTagModal(false)} type="button" className="flex focus:outline-none text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-900">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </Modal>
         </>
 
     )

@@ -173,13 +173,20 @@ const RestoreTable = () => {
 
     // Filtering and search logic
     const onSearchChange = (e) => {
-        const inputValue = e.target.value.toLowerCase();
-        const filtered = data.filter((member) =>
-            member.first_name.toLowerCase().includes(inputValue) ||
-            member.last_name.toLowerCase().includes(inputValue) ||
-            member.email.toLowerCase().includes(inputValue)
+        const inputValues = e.target.value.toLowerCase().split(' ');
 
-        );
+        const filtered = data.filter((member) => {
+            const firstName = member.first_name.toLowerCase();
+            const lastName = member.last_name.toLowerCase();
+            const email = member.email.toLowerCase();
+
+            return inputValues.every(input => (
+                firstName.includes(input) ||
+                lastName.includes(input) ||
+                email.includes(input)
+            ));
+        });
+
         setFilteredMembers(filtered);
     };
 
