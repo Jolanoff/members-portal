@@ -254,7 +254,6 @@ const Settings = () => {
                         </button>
                     )}
                 </div>
-
                 <div className={`fixed bottom-0 right-0 mb-12 mr-12 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-[100] ${successAlertVisable ? 'block' : 'hidden'}`}>
                     {successAlertMessage}
                 </div>

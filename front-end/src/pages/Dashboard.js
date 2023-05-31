@@ -38,8 +38,7 @@ const Dashboard = () => {
                 <TagControl />
               </div>
               <div className="flex-1">
-              <TagControl />
-
+              {/* place the sec element here */}
               </div>
             </div>
           </div>

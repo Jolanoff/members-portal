@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { useKeycloak } from '../KeycloakContext'
 
 import { Tabs } from 'flowbite-react'
-
+import FilterForm from './tools/FilterForm';
 import { ThreeDots } from 'react-loader-spinner';
 
 
@@ -97,48 +97,79 @@ function Members() {
 
   // pagination  
   // Filtered Set based on activeTab and search input
-  const filteredSet = filteredMembers.filter(x => activeTab === 0 || (activeTab === 1 && x.current) || (activeTab === 2 && !x.current));
+  const [selectedFilter, setSelectedFilter] = useState({ degree: '', department: '', subsystem: '' });
+
+  const handleSelectFilter = ({ filterType, filterValue }) => {
+    setSelectedFilter({ degree: '', department: '', subsystem: '', [filterType]: filterValue });
+  }
+  
+
+
   const indexLast = currentPage * dataPerpage;
   const indexFirst = indexLast - dataPerpage;
   // Current Data to be displayed based on pagination
-  const currentData = filteredSet.length > dataPerpage ? filteredSet.slice(indexFirst, indexLast) : filteredSet;
+  const currentData = filteredMembers.length > dataPerpage ? filteredMembers.slice(indexFirst, indexLast) : filteredMembers;
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const [userInput, setUserInput] = useState('');
   const [noData, setNoData] = useState(false);
 
-
-  //search function
-
-  const onSearchChange = (e) => {
-    const inputValues = e.target.value.toLowerCase().split(' ');
+  const updateFilteredMembers = (searchTerm = '') => {
+    let result = [...data];
     const canSeePhoneNumber = !keycloak.hasRealmRole('former_member');
-  
-    const filtered = data.filter((member) => {
-      const name = ((member.first_name || '') + ' ' + (member.last_name || '')).toLowerCase();
-      const email = (member.email || '').toLowerCase();
-      const phoneNumberString = (member.phone_number ? member.phone_number.toString() : '');
-  
-      return inputValues.every(input => (
-        name.includes(input) ||
-        email.includes(input) ||
-        (canSeePhoneNumber && phoneNumberString.includes(input))
-      ));
-    });
 
-    if (filtered.length === 0) {
+    // Filter based on search term
+    if (searchTerm) {
+      const inputValues = searchTerm.toLowerCase().split(' ');
+
+      result = result.filter((member) => {
+        const name = ((member.first_name || '') + ' ' + (member.last_name || '')).toLowerCase();
+        const email = (member.email || '').toLowerCase();
+        const phoneNumberString = (member.phone_number ? member.phone_number.toString() : '');
+
+        return inputValues.every(input => (
+          name.includes(input) ||
+          email.includes(input) ||
+          (canSeePhoneNumber && phoneNumberString.includes(input))
+        ));
+      });
+    }
+
+    // Filter based on activeTab
+    if (activeTab !== 0) {
+      result = result.filter(x => (activeTab === 1 && x.current) || (activeTab === 2 && !x.current));
+    }
+
+    // Apply filters
+    if (selectedFilter.degree) {
+
+      result = result.filter(x => x.degrees.includes(selectedFilter.degree));
+    }
+    if (selectedFilter.department) {
+      result = result.filter(x => x.departments.includes(selectedFilter.department));
+    }
+    if (selectedFilter.subsystem) {
+      result = result.filter(x => x.subsystems.includes(selectedFilter.subsystem));
+    }
+
+    if (result.length === 0) {
       setNoData(true);
     } else {
       setNoData(false);
     }
 
-    setFilteredMembers(filtered);
+    setFilteredMembers(result);
   };
 
+  //search function
+  const onSearchChange = (e) => {
+    setUserInput(e.target.value);
+    updateFilteredMembers(e.target.value);
+  };
 
-
-
-
+  useEffect(() => {
+    updateFilteredMembers(userInput);
+  }, [data, activeTab, selectedFilter]);
 
 
 
@@ -161,6 +192,7 @@ function Members() {
             </div>
             <div className="text-sm mb-10 font-medium text-center text-gray-500 border-b border-gray-200 dark:text-gray-400 dark:border-gray-700">
               <ul className="flex flex-wrap -mb-px justify-between">
+
                 <li className="mr-2">
                   <Tabs.Group
                     aria-label="Tabs with underline"
@@ -179,12 +211,15 @@ function Members() {
                   </Tabs.Group>
                 </li>
                 <li className="w-100">
+
                   <div className="relative text-gray-600 focus-within:text-gray-400">
+
                     <span className="absolute inset-y-0 left-0 flex items-center pl-2">
                       <button type="submit" className="p-1 focus:outline-none focus:shadow-outline">
                         <FaSearch />
                       </button>
                     </span>
+
                     <input
                       value={userInput}
                       onChange={(e) => {
@@ -198,18 +233,30 @@ function Members() {
                     />
 
                   </div>
+
                 </li>
+
               </ul>
+              <div className='flex'>
+                <div className='mb-5'>
+                  <FilterForm handleSelectFilter={handleSelectFilter} />
+
+                </div>
+              </div>
+
             </div>
+
+
             <div className="grid gap-8 lg:gap-16 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {noData
                 ? <p className='m-10 font-semibold text-gray-600'>No search results.</p>
                 : currentData.map(x => MemberViewItem(x))
               }
             </div>
-            {!userInput && filteredSet.length > dataPerpage &&
-              <PaginationTool dataPerpage={dataPerpage} totalData={filteredSet.length} paginate={paginate} currentPage={currentPage} />
+            {!userInput && filteredMembers.length > dataPerpage &&
+              <PaginationTool dataPerpage={dataPerpage} totalData={filteredMembers.length} paginate={paginate} currentPage={currentPage} />
             }
+
           </div>
         </section>
       )};

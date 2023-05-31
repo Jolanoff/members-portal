@@ -174,19 +174,38 @@ app.get('/getUserForAdmin/:id', keycloak.protect('admin'), async (req, res) => {
 app.get('/users', keycloak.protect(), (req, res) => {
   const requestUserRole = req.headers['x-user-role'];
 
-  let q;
-
-  if (requestUserRole === 'former_member') {
-    q = "SELECT id, first_name, last_name, email, profile_pic ,current FROM users WHERE status = true";
-  } else {
-    q = "SELECT id, first_name, last_name, email, phone_number, profile_pic ,current FROM users WHERE status = true";
-  }
+  const q = `
+    SELECT 
+      users.id, 
+      users.first_name, 
+      users.last_name, 
+      users.email, 
+      ${requestUserRole !== 'former_member' ? 'users.phone_number,' : ''}
+      users.profile_pic,
+      users.current,
+      GROUP_CONCAT(DISTINCT education.degree) as degrees,
+      GROUP_CONCAT(DISTINCT projects.department) as departments,
+      GROUP_CONCAT(DISTINCT projects.subsystem) as subsystems
+    FROM users 
+    LEFT JOIN education ON users.id = education.team_member_id
+    LEFT JOIN team_member_projects ON users.id = team_member_projects.team_member_id
+    LEFT JOIN projects ON team_member_projects.project_id = projects.id
+    WHERE users.status = true
+    GROUP BY users.id
+  `;
 
   db.query(q, (err, data) => {
     if (err) return res.json(err);
-    return res.send(data);
+    const members = data.map(item => ({
+      ...item,
+      degrees: item.degrees ? item.degrees.split(',') : [],
+      departments: item.departments ? item.departments.split(',') : [],
+      subsystems: item.subsystems ? item.subsystems.split(',') : []
+    }));
+    return res.send(members);
   });
 });
+
 
 //------------------------------ Get all the members for the autosuggest ------------------------------
 
@@ -1678,26 +1697,26 @@ app.put('/tags/:id', keycloak.protect('admin'), (req, res) => {
   const { id } = req.params;
 
   if (!tagName) {
-      return res.status(400).json({ error: "Tag name is required" });
+    return res.status(400).json({ error: "Tag name is required" });
   }
 
   const checkTagExistsQuery = "SELECT * FROM tags WHERE tag_name = ? AND tag_id != ?";
 
   db.query(checkTagExistsQuery, [tagName, id], (err, data) => {
+    if (err) return res.status(500).json(err);
+
+    // If a tag with the new name exists and it's not the current tag, send an error message
+    if (data.length > 0) {
+      return res.status(400).json({ error: "Tag name already exists" });
+    }
+
+    // If no tag with the new name exists or it's the current tag, proceed with the update
+    const updateTagQuery = "UPDATE tags SET tag_name = ? WHERE tag_id = ?";
+
+    db.query(updateTagQuery, [tagName, id], (err, data) => {
       if (err) return res.status(500).json(err);
-
-      // If a tag with the new name exists and it's not the current tag, send an error message
-      if (data.length > 0) {
-          return res.status(400).json({ error: "Tag name already exists" });
-      }
-
-      // If no tag with the new name exists or it's the current tag, proceed with the update
-      const updateTagQuery = "UPDATE tags SET tag_name = ? WHERE tag_id = ?";
-
-      db.query(updateTagQuery, [tagName, id], (err, data) => {
-          if (err) return res.status(500).json(err);
-          return res.status(200).send({ message: 'Tag updated successfully' });
-      });
+      return res.status(200).send({ message: 'Tag updated successfully' });
+    });
   });
 });
 // ------------------------------ delete tags for admin dashboard ------------------------------
@@ -1717,6 +1736,37 @@ app.delete('/tags/:id', keycloak.protect('admin'), (req, res) => {
     db.query(deleteTagsQ, [id], (err, data) => {
       if (err) return res.status(500).json(err);
       return res.status(200).send({ message: 'Tag deleted successfully' });
+    });
+  });
+});
+
+
+app.get('/filters', (req, res) => {
+  const degreesQuery = "SELECT DISTINCT degree FROM education";
+  const departmentsQuery = "SELECT DISTINCT department FROM projects";
+  const subsystemsQuery = "SELECT DISTINCT subsystem FROM projects";
+
+  db.query(degreesQuery, (degreesError, degreesData) => {
+    if (degreesError) {
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+
+    db.query(departmentsQuery, (departmentsError, departmentsData) => {
+      if (departmentsError) {
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
+
+      db.query(subsystemsQuery, (subsystemsError, subsystemsData) => {
+        if (subsystemsError) {
+          return res.status(500).json({ error: "Internal Server Error" });
+        }
+
+        return res.status(200).json({
+          degrees: degreesData.map(item => item.degree),
+          departments: departmentsData.map(item => item.department),
+          subsystems: subsystemsData.map(item => item.subsystem),
+        });
+      });
     });
   });
 });
