@@ -90,19 +90,23 @@ const FilterForm = ({ handleSelectFilter }) => {
 
   return (
     <Space>
-      <Dropdown overlay={menu} trigger={['click']}>
-        <Button>
-          <Space>
-            Filter
-            <DownOutlined />
-          </Space>
-        </Button>
-      </Dropdown>
+      <div>
+        <Dropdown overlay={menu}>
+          <Button>
+            <Space>
+              Filter
+              <DownOutlined />
+            </Space>
+          </Button>
+        </Dropdown>
+      </div>
       {selectedFilter.filterType && selectedFilter.filterValue && (
         <Tag closable onClose={handleFilterReset}>
           {`${selectedFilter.filterType}: ${selectedFilter.filterValue}`}
         </Tag>
       )}
+
+
     </Space>
   );
 };

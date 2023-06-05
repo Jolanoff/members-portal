@@ -38,6 +38,9 @@ const NavbarPage = () => {
     const navigateToMembers = () => {
         navigate('/members');
     };
+    const navigateToProjects = () => {
+        navigate('/projects');
+    };
     const navigateToDashboard = () => {
         if (isAdmin) {
             navigate('/dashboard');
@@ -82,7 +85,7 @@ const NavbarPage = () => {
             <div className="flex md:order-2">
             <Navbar.Brand type="button" 
             href='https://github.com/Jolanoff/members-portal/issues'
-            class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">Give feedback</Navbar.Brand>
+            className="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">Give feedback</Navbar.Brand>
 
                 <Dropdown
                     arrowIcon={false}
@@ -125,7 +128,12 @@ const NavbarPage = () => {
                         Members
                     </Navbar.Link>
                 </label>
-                <div></div>
+                <label className='cursor-pointer'>
+                    <Navbar.Link onClick={navigateToProjects} active={location.pathname === '/projects'}>
+                        Projects
+                    </Navbar.Link>
+                </label>
+                
                 <div></div>
 
                 <div></div>

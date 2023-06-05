@@ -163,7 +163,7 @@ const Profile = () => {
           </div>
           <p className="text-gray-600">{formatDate(item.from_date)} - {formatDate(item.till_date)}</p>
           {item.team_members.map((member, index) => (
-            <React.Fragment key={member.user_id}>
+            <React.Fragment key={member.user_id || index}>
               <a
                 href={`/members/${member.user_id}`}
                 className="text-gray-600 hover:text-blue-600"
@@ -176,19 +176,17 @@ const Profile = () => {
           <div>
             {item.tags && item.tags.length > 0 && item.tags[0].tag_name !== null && (
               item.tags.map((tag, index) => (
-                <React.Fragment key={tag.id}>
-
+                <React.Fragment key={tag.id || index}>
                   <div
                     className="mt-5 ml-2 text-xs inline-flex items-center font-bold leading-sm uppercase px-3 py-1 bg-red-200 text-red-700 rounded-full"
                   >
                     {tag.tag_name}
                   </div>
-
                 </React.Fragment>
               ))
             )}
-
           </div>
+
         </div>
         <div className='mr-2'>
           {
@@ -1729,7 +1727,7 @@ const Profile = () => {
           content: {
             position: 'relative',
             margin: 'auto',
-            zIndex: 50, 
+            zIndex: 50,
           },
         }}
       >

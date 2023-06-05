@@ -81,9 +81,11 @@ const UsersTable = () => {
     const MemberViewItem = (item) => {
         return (
             <tr key={item.id} className="border-b dark:border-gray-700">
-                <Link to={`/members/${item.id}`}>
-                    <th scope="row" className="hover:text-blue-600 px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white">{item.first_name + " " + item.last_name}</th>
-                </Link>
+                <th scope="row" className="hover:text-blue-600 px-4 py-3 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                    <Link to={`/members/${item.id}`}>
+                        {item.first_name + " " + item.last_name}
+                    </Link>
+                </th>
                 <td className="px-4 py-3">{item.email}</td>
                 <td className="px-4 py-3">{item.student_number}</td>
                 <td className="px-4 py-3">{item.card_number}</td>
@@ -412,12 +414,18 @@ const UsersTable = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {/* Members content */}
                             {filteredMembers.length === 0
-                                ? <p className='m-10 font-semibold text-gray-600'>No search results.</p>
+                                ? (
+                                    <tr>
+                                        <td>
+                                            <p className='m-10 font-semibold text-gray-600'>No search results.</p>
+                                        </td>
+                                    </tr>
+                                )
                                 : currentData.map(MemberViewItem)
                             }
                         </tbody>
+
                     </table>
                 </div>
                 {/* table footer */}

@@ -246,9 +246,18 @@ const RestoreTable = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {/* Members content */}
-                            {currentData.map(x => MemberViewItem(x))}
+                            {filteredMembers.length === 0
+                                ? (
+                                    <tr>
+                                        <td>
+                                            <p className='m-10 font-semibold text-gray-600'>No results.</p>
+                                        </td>
+                                    </tr>
+                                )
+                                : currentData.map(MemberViewItem)
+                            }
                         </tbody>
+
                     </table>
                 </div>
 

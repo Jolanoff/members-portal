@@ -69,7 +69,7 @@ function Members() {
   const MemberViewItem = (item) => {
     return (
 
-      <Link to={`/members/${item.id}`} className="text-center text-gray-500 dark:text-gray-400 ">
+      <Link to={`/members/${item.id}`} className="text-center text-gray-500 dark:text-gray-400" key={item.id} >
         <div className="card" key={item.id}>
           {item.profile_pic ? (
             <img
@@ -86,7 +86,7 @@ function Members() {
           )}
 
           <h3 className="mb-1 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-            <a href="#">{item.first_name + " " + item.last_name}</a>
+            {item.first_name + " " + item.last_name}
           </h3>
           <p>{item.email}</p>
           <p>{item.phone_number}</p>
@@ -102,7 +102,7 @@ function Members() {
   const handleSelectFilter = ({ filterType, filterValue }) => {
     setSelectedFilter({ degree: '', department: '', subsystem: '', [filterType]: filterValue });
   }
-  
+
 
 
   const indexLast = currentPage * dataPerpage;
