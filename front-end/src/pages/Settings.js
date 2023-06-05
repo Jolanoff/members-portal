@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useKeycloak } from '../KeycloakContext';
 import axios from 'axios';
 
+import { FaRegQuestionCircle } from "react-icons/fa";
+import { Popover } from 'antd';
+
 const Settings = () => {
 
     const { userProfile: initialUserProfile, keycloak } = useKeycloak();
@@ -42,7 +45,6 @@ const Settings = () => {
     };
 
     useEffect(() => {
-
         setUserProfile(initialUserProfile);
         fetchdata()
     }, [initialUserProfile]);
@@ -60,8 +62,9 @@ const Settings = () => {
             // Update password if newPassword and confirmNewPassword are filled
             if (newPassword && confirmNewPassword) {
                 if (newPassword !== confirmNewPassword) {
-                    setErrorMsg("New password and confirmation do not match");
-                    return;
+                   setErrorAlertMessage('New password and confirmation do not match')
+                   showErrorAlert()
+                   return;
                 }
                 const passwordResponse = await axios.put(
                     `${process.env.REACT_APP_API_URL}/user/changePassword/${userId}`,
@@ -155,6 +158,13 @@ const Settings = () => {
         }, 2000);
     };
 
+    const passwordPolicy = (
+        <ul>
+          <li>* You password must be atleast 8 characters long</li>
+          <li>* You password must contain atleast one uppercase character</li>
+        </ul>
+      );
+
     return (
 
         <section className="bg-gray-100 min-h-screen">
@@ -201,7 +211,9 @@ const Settings = () => {
                             </button>
                             {showChangePasswordModal && (
                                 <div className="bg-gray-300 p-8 rounded-md mt-5">
-
+                                     <Popover content={passwordPolicy} title="Password Policy">
+                                        <FaRegQuestionCircle className='mb-5 text-blue-800'/>
+                                     </Popover>
                                     <div className="mb-4">
                                         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="new-password">
                                             New Password

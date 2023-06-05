@@ -1740,6 +1740,7 @@ app.delete('/tags/:id', keycloak.protect('admin'), (req, res) => {
   });
 });
 
+0.
 
 app.get('/filters', (req, res) => {
   const degreesQuery = "SELECT DISTINCT degree FROM education";

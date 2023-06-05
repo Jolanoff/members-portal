@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Dropdown } from 'flowbite-react';
-import { FaBan, FaEdit, FaWindowClose, FaRedoAlt, FaArrowLeft, FaArrowRight, FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa'
+import { FaRegQuestionCircle, FaBan, FaEdit, FaWindowClose, FaRedoAlt, FaArrowLeft, FaArrowRight, FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa'
 import { Link } from 'react-router-dom';
 import Modal from 'react-modal';
 import { useKeycloak } from '../../KeycloakContext'
 import Pagination from 'react-js-pagination';
+
+import { Popover } from 'antd';
 
 const UsersTable = () => {
     //intialize keycloak
@@ -159,7 +161,7 @@ const UsersTable = () => {
     };
 
     const handlePasswordChange = async () => {
-        if(!newPassword || !confirmNewPassword){
+        if (!newPassword || !confirmNewPassword) {
             setErrorAlertMessage("Please fill in all fields");
             showErrorAlert()
             return;
@@ -230,7 +232,7 @@ const UsersTable = () => {
             SetUpdateModal(false)
             fetchData();
         } catch (err) {
-            setErrorAlertMessage(err.response?.data || 'An error occurred');
+            setErrorAlertMessage(err.response?.data);
             showErrorAlert();
         }
     };
@@ -252,7 +254,7 @@ const UsersTable = () => {
             SetUpdateModal(false)
             fetchData();
         } catch (err) {
-            setErrorAlertMessage(err.response?.data || 'An error occurred');
+            setErrorAlertMessage(err.response?.data);
             showErrorAlert();
         }
     };
@@ -291,7 +293,7 @@ const UsersTable = () => {
             SetCreateModal(false)
 
         } catch (err) {
-            setErrorAlertMessage(err.response?.data || 'An error occurred');
+            setErrorAlertMessage(err.response?.data);
             showErrorAlert()
         }
     };
@@ -324,22 +326,22 @@ const UsersTable = () => {
     // Filtering and search logic
     const onSearchChange = (e) => {
         const inputValues = e.target.value.toLowerCase().split(' ');
-        
+
         const filtered = data.filter((member) => {
-          const firstName = member.first_name.toLowerCase();
-          const lastName = member.last_name.toLowerCase();
-          const email = member.email.toLowerCase();
-      
-          return inputValues.every(input => (
-            firstName.includes(input) ||
-            lastName.includes(input) ||
-            email.includes(input)
-          ));
+            const firstName = member.first_name.toLowerCase();
+            const lastName = member.last_name.toLowerCase();
+            const email = member.email.toLowerCase();
+
+            return inputValues.every(input => (
+                firstName.includes(input) ||
+                lastName.includes(input) ||
+                email.includes(input)
+            ));
         });
-      
+
         setFilteredMembers(filtered);
-      };
-      
+    };
+
 
     const handlePageChange = (pageNumber) => {
         setActivePage(pageNumber);
@@ -348,6 +350,16 @@ const UsersTable = () => {
     const indexLast = activePage * itemsPerPage;
     const indexFirst = indexLast - itemsPerPage;
     const currentData = userInput ? filteredMembers.slice(indexFirst, indexLast) : data.slice(indexFirst, indexLast);
+
+
+
+    const passwordPolicy = (
+        <ul>
+            <li>* You password must be atleast 8 characters long</li>
+            <li>* You password must contain atleast one uppercase character</li>
+        </ul>
+    );
+
 
     return (
         <div className="mx-auto max-w-screen-x2 px-4 lg:px-12">
@@ -693,12 +705,11 @@ const UsersTable = () => {
                     isOpen={passwordModal}
                     onRequestClose={() => setPasswordModal(false)}
                     contentLabel="Update Modal"
-                    className=" flex justify-center mt-48"
+                    className="flex justify-center mt-48"
                     shouldCloseOnOverlayClick={false}
                     style={{
                         overlay: {
                             backgroundColor: 'rgba(196,196,196,0.5)',
-
                         }
                     }}
                 >
@@ -717,32 +728,38 @@ const UsersTable = () => {
                                     <FaWindowClose />
                                 </button>
                             </div>
-
-                            <form action="#">
-                                <div className="grid gap-4 mb-4 sm:grid-cols-2">
-                                    <div>
-                                        <label htmlFor="newPass" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">New password:</label>
-                                        <input type="text" name="newPass" id="newPass" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                            onChange={(e) => setNewPassword(e.target.value)} required />
-                                    </div>
-                                    <div>
-                                        <label htmlFor="firstName" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Confirm new password:</label>
-                                        <input type="text" name="firstName" id="firstName" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                            onChange={(e) => setConfirmNewPassword(e.target.value)} required />
-                                    </div>
-
-
-
+                            <div className='flex justify-end'>
+                                <div className='self-end'>
+                                    <Popover content={passwordPolicy} title="Password Policy" >
+                                        <FaRegQuestionCircle className='mb-5 text-blue-800' />
+                                    </Popover>
                                 </div>
-                                <div className='flex'>
-                                    <button onClick={handlePasswordChange} type="button" className="flex text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+                            </div>
 
-                                        Update password
-                                    </button>
+                            <div className="grid gap-4 mb-4 sm:grid-cols-2">
+                                <div>
+                                    <label htmlFor="newPass" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">New password:</label>
+                                    <input type="text" name="newPass" id="newPass" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                        onChange={(e) => setNewPassword(e.target.value)} required />
                                 </div>
-                                {errorMessage && <p className="error-message italic font-semibold">{errorMessage}</p>}
+                                <div>
+                                    <label htmlFor="firstName" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Confirm new password:</label>
+                                    <input type="text" name="firstName" id="firstName" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                        onChange={(e) => setConfirmNewPassword(e.target.value)} required />
+                                </div>
 
-                            </form>
+
+
+                            </div>
+                            <div className='flex'>
+                                <button onClick={handlePasswordChange} type="button" className="flex text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+
+                                    Update password
+                                </button>
+                            </div>
+                            {errorMessage && <p className="error-message italic font-semibold">{errorMessage}</p>}
+
+
                         </div>
                     </div>
                 </Modal>
