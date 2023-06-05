@@ -7,13 +7,15 @@ import Members from "./pages/Members";
 import Dashboard from "./pages/Dashboard";
 import Profile from './pages/Profile';
 import NavbarPage from './components/NavbarPage';
+import Projects from './pages/Projects';
+
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './css/index.css';
 import Settings from './pages/Settings';
 
 
-
-
+import Modal from 'react-modal';
+Modal.setAppElement('#root'); 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -28,6 +30,7 @@ root.render(
           <Route index element={<Dashboard/>}/>
         </Route>
         <Route path='/members/:id' element={< Profile />} />
+        <Route path='/projects' element={< Projects />} />
         <Route path='/settings' element={< Settings />} />
       </Routes>
     </KeycloakMiddleware>
