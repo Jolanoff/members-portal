@@ -1190,7 +1190,7 @@ app.get('/projects', keycloak.protect(), (req, res) => {
 `;
 
 
-  db.query(q,  (err, data) => {
+  db.query(q, (err, data) => {
     if (err) return res.json(err);
 
     if (data.length > 0) {
@@ -1279,46 +1279,51 @@ app.post('/user/:id/createProject', keycloak.protect(), async (req, res) => {
             console.error(error);
           }
         }
-
         // Create and assign tags to the project
-        for (const tag of assignedTags) {
-          let existingTag;
-          try {
-            const findTagQuery = 'SELECT * FROM tags WHERE tag_name = ?';
-            existingTag = await new Promise((resolve, reject) => {
-              db.query(findTagQuery, [tag.tag_name], (err, result) => {
-                if (err) reject(err);
-                resolve(result[0]);
-              });
-            });
-          } catch (error) {
-            console.error(error);
-          }
+        const existingTags = assignedTags.filter(tag => tag.tag_id);
+        const newTags = assignedTags.filter(tag => !tag.tag_id);
 
-          if (!existingTag) {
-            try {
-              const createTagQuery = 'INSERT INTO tags (tag_name) VALUES (?)';
-              existingTag = await new Promise((resolve, reject) => {
-                db.query(createTagQuery, [tag.tag_name], (err, result) => {
-                  if (err) reject(err);
-                  resolve({ id: result.insertId, tag_name: tag.tag_name });
-                });
-              });
-            } catch (error) {
-              console.error(error);
-            }
-          }
-          try {
-            const assignTagToProjectQuery = 'INSERT IGNORE INTO project_tags (project_id, tag_id) VALUES (?, ?)';
-            await new Promise((resolve, reject) => {
-              db.query(assignTagToProjectQuery, [projectId, existingTag.id], (err, result) => {
-                if (err) reject(err);
+        for (const tag of existingTags) {
+          // Assign the existing tag to the project
+          const assignTagToProjectQuery = 'INSERT IGNORE INTO project_tags (project_id, tag_id) VALUES (?, ?)';
+          await new Promise((resolve, reject) => {
+            db.query(assignTagToProjectQuery, [projectId, tag.tag_id], (err, result) => {
+              if (err) {
+                console.error(err);
+                reject(err);
+              } else {
                 resolve(result);
-              });
+              }
             });
-          } catch (error) {
-            console.error(error);
-          }
+          });
+        }
+
+        for (const tag of newTags) {
+          // Create the new tag
+          const createTagQuery = 'INSERT INTO tags (tag_name) VALUES (?)';
+          const newTag = await new Promise((resolve, reject) => {
+            db.query(createTagQuery, [tag.tag_name], (err, result) => {
+              if (err) {
+                console.error(err);
+                reject(err);
+              } else {
+                resolve({ tag_id: result.insertId, tag_name: tag.tag_name });
+              }
+            });
+          });
+
+          // Assign the new tag to the project
+          const assignTagToProjectQuery = 'INSERT IGNORE INTO project_tags (project_id, tag_id) VALUES (?, ?)';
+          await new Promise((resolve, reject) => {
+            db.query(assignTagToProjectQuery, [projectId, newTag.tag_id], (err, result) => {
+              if (err) {
+                console.error(err);
+                reject(err);
+              } else {
+                resolve(result);
+              }
+            });
+          });
         }
 
         res.status(201).json({ message: 'Project created successfully', projectId: projectId });
@@ -1417,45 +1422,52 @@ app.put('/user/:id/editProject/:projectId', keycloak.protect(), async (req, res)
         });
 
         // Create and assign tags to the project
-        for (const tag of assignedTags) {
-          let existingTag;
-          try {
-            const findTagQuery = 'SELECT * FROM tags WHERE tag_name = ?';
-            existingTag = await new Promise((resolve, reject) => {
-              db.query(findTagQuery, [tag.tag_name], (err, result) => {
-                if (err) reject(err);
-                resolve(result[0]);
-              });
-            });
-          } catch (error) {
-            console.error(error);
-          }
-          if (!existingTag) {
-            try {
-              const createTagQuery = 'INSERT INTO tags (tag_name) VALUES (?)';
-              existingTag = await new Promise((resolve, reject) => {
-                db.query(createTagQuery, [tag.tag_name], (err, result) => {
-                  if (err) reject(err);
-                  resolve({ id: result.insertId, tag_name: tag.tag_name });
-                });
-              });
-            } catch (error) {
-              console.error(error);
-            }
-          }
+        const existingTags = assignedTags.filter(tag => tag.tag_id);
+        const newTags = assignedTags.filter(tag => !tag.tag_id);
 
-          try {
-            const assignTagToProjectQuery = 'INSERT IGNORE INTO project_tags (project_id, tag_id) VALUES (?, ?)';
-            await new Promise((resolve, reject) => {
-              db.query(assignTagToProjectQuery, [projectId, existingTag.id], (err, result) => {
-                if (err) reject(err);
+        for (const tag of existingTags) {
+          // Assign the existing tag to the project
+          const assignTagToProjectQuery = 'INSERT IGNORE INTO project_tags (project_id, tag_id) VALUES (?, ?)';
+          await new Promise((resolve, reject) => {
+            db.query(assignTagToProjectQuery, [projectId, tag.tag_id], (err, result) => {
+              if (err) {
+                console.error(err);
+                reject(err);
+              } else {
                 resolve(result);
-              });
+              }
             });
-          } catch (error) {
-            console.error(error);
-          }
+          });
         }
+
+        for (const tag of newTags) {
+          // Create the new tag
+          const createTagQuery = 'INSERT INTO tags (tag_name) VALUES (?)';
+          const newTag = await new Promise((resolve, reject) => {
+            db.query(createTagQuery, [tag.tag_name], (err, result) => {
+              if (err) {
+                console.error(err);
+                reject(err);
+              } else {
+                resolve({ tag_id: result.insertId, tag_name: tag.tag_name });
+              }
+            });
+          });
+
+          // Assign the new tag to the project
+          const assignTagToProjectQuery = 'INSERT IGNORE INTO project_tags (project_id, tag_id) VALUES (?, ?)';
+          await new Promise((resolve, reject) => {
+            db.query(assignTagToProjectQuery, [projectId, newTag.tag_id], (err, result) => {
+              if (err) {
+                console.error(err);
+                reject(err);
+              } else {
+                resolve(result);
+              }
+            });
+          });
+        }
+
 
         res.status(200).json({ message: 'Project updated successfully', projectId: projectId });
       });
