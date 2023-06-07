@@ -257,7 +257,6 @@ const RestoreTable = () => {
                                 : currentData.map(MemberViewItem)
                             }
                         </tbody>
-
                     </table>
                 </div>
 

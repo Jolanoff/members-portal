@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useKeycloak } from '../KeycloakContext';
 import { Tabs, Dropdown } from 'flowbite-react';
@@ -153,12 +153,13 @@ const Profile = () => {
 
       <div className="border-b border-gray-200 pb-4 flex justify-between" key={item.id}>
         <div className="space-y-2">
-          <h3 className="text-2xl font-semibold">{item.title}</h3>
-
+          <Link to={`/projects/${item.id}`}>
+            <h3 className="text-2xl font-semibold hover:text-blue-600">{item.title}</h3>
+          </Link>
           <p className="text-gray-600 font-bold">Department: {item.department}</p>
           <p className="text-gray-600 font-bold">Subsystem: {item.subsystem}</p>
 
-        
+
           <p className="text-gray-600">{formatDate(item.from_date)} - {formatDate(item.till_date)}</p>
           {item.team_members.map((member, index) => (
             <React.Fragment key={member.user_id || index}>
