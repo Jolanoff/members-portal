@@ -1185,12 +1185,49 @@ app.get('/projects', keycloak.protect(), (req, res) => {
       FROM users u
       WHERE u.keycloak_user_id = p.last_updated_by
     ) AS last_updated_by_name
-  FROM projects p
- 
-`;
-
+  FROM projects p`;
 
   db.query(q, (err, data) => {
+    if (err) return res.json(err);
+
+    if (data.length > 0) {
+      return res.send(data);
+    } else {
+      return res.status(404).json({ message: 'There are no avalible projects' });
+    }
+  });
+});
+
+app.get('/projects/:id', keycloak.protect(), (req, res) => {
+
+  const projectId = req.params.id;
+  const q = `
+  SELECT p.id, p.title, p.department, p.subsystem, p.from_date, p.till_date, p.description,
+    (
+      SELECT JSON_ARRAYAGG(JSON_OBJECT('user_id', u.id, 'name', CONCAT(u.first_name, ' ', u.last_name)))
+      FROM team_member_projects tmp
+      JOIN users u ON tmp.team_member_id = u.id
+      WHERE tmp.project_id = p.id
+    ) AS team_members,
+    (
+      SELECT JSON_ARRAYAGG(JSON_OBJECT('tag_id', t.tag_id, 'tag_name', t.tag_name))
+      FROM project_tags pt
+      JOIN tags t ON pt.tag_id = t.tag_id
+      WHERE pt.project_id = p.id
+    ) AS tags,
+    (
+      SELECT CONCAT(u.first_name, ' ', u.last_name)
+      FROM users u
+      WHERE u.keycloak_user_id = p.created_by
+    ) AS created_by_name,
+    (
+      SELECT CONCAT(u.first_name, ' ', u.last_name)
+      FROM users u
+      WHERE u.keycloak_user_id = p.last_updated_by
+    ) AS last_updated_by_name
+  FROM projects p WHERE p.id = ?`;
+
+  db.query(q, projectId, (err, data) => {
     if (err) return res.json(err);
 
     if (data.length > 0) {

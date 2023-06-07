@@ -158,9 +158,7 @@ const Profile = () => {
           <p className="text-gray-600 font-bold">Department: {item.department}</p>
           <p className="text-gray-600 font-bold">Subsystem: {item.subsystem}</p>
 
-          <div>
-            <p className="text-gray-600">{item.description}</p>
-          </div>
+        
           <p className="text-gray-600">{formatDate(item.from_date)} - {formatDate(item.till_date)}</p>
           {item.team_members.map((member, index) => (
             <React.Fragment key={member.user_id || index}>
