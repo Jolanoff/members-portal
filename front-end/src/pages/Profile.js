@@ -864,7 +864,7 @@ const Profile = () => {
 
             {/* Name and tagline */}
             <h1 className="text-3xl font-bold mt-6">{data.first_name + " " + data.last_name}</h1>
-            <p className="text-gray-600">Web Developer | UI/UX Enthusiast</p>
+            
 
             {/* Contact information */}
             <div className="max-w-2xl mt-10 flex flex-col items-center">

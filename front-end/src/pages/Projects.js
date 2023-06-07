@@ -37,15 +37,20 @@ const Projects = () => {
 
     const filtered = projects.filter((project) => {
       const title = project.title.toLowerCase();
+      const department = project.department.toLowerCase();
+      const subsystem = project.subsystem.toLowerCase();
 
       return inputValues.every(input => (
-        title.includes(input)
+        title.includes(input) ||
+        department.includes(input) ||
+        subsystem.includes(input)
       ));
     });
 
     setFilteredProjects(filtered);
     setActivePage(1);
   };
+
 
   const handlePageChange = (pageNumber) => {
     setActivePage(pageNumber);
@@ -97,7 +102,7 @@ const Projects = () => {
           }}
           type="text"
           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-          placeholder="Search projects by title"
+          placeholder="Search projects by title, departement or subsystem"
           required=""
         />
       </div>
