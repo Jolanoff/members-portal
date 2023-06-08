@@ -82,6 +82,7 @@ const Profile = () => {
       setData(response.data[0]);
       setIsCurrentUser(keycloak.subject === response.data[0].keycloak_user_id);
       setDefaultUsers([response.data[0]])
+      setDepartment(response.data[0].department)
       setPhone(response.data[0].phone_number)
       setNationality(response.data[0].nationality)
       setStudentNum(response.data[0].student_number)
@@ -762,7 +763,8 @@ const Profile = () => {
       console.log(error);
     }
   };
-
+  //edit profile function
+  const [department, setDepartment] = useState('')
   const [phone, setPhone] = useState('')
   const [nationality, setNationality] = useState('')
   const [studentNum, setStudentNum] = useState('')
@@ -778,6 +780,7 @@ const Profile = () => {
         const response = await axios.put(
           `${process.env.REACT_APP_API_URL}/user/${id}/profile`,
           {
+            department,
             phone,
             nationality,
             studentNum,
@@ -864,7 +867,7 @@ const Profile = () => {
 
             {/* Name and tagline */}
             <h1 className="text-3xl font-bold mt-6">{data.first_name + " " + data.last_name}</h1>
-            
+            <p className='text-gray-600 uppercase'>{data.department}</p>
 
             {/* Contact information */}
             <div className="max-w-2xl mt-10 flex flex-col items-center">
@@ -1764,6 +1767,20 @@ const Profile = () => {
                 <ProfileImageCropper onUpload={handleUploadCroppedImage} />
               </div>
               <div className="mt-4">
+                <label htmlFor="nationality" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                  Department:
+                </label>
+                <input
+                  type="text"
+                  name="department"
+                  id="department"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="mt-4">
                 <label htmlFor="phone" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                   Phone number:
                 </label>
@@ -1864,6 +1881,9 @@ const Profile = () => {
                   className="w-full h-10 px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:border-blue-400"
                   calendarClassName="border border-gray-300 rounded-md shadow-lg"
                 />
+              </div>
+              <div className="mt-4">
+
               </div>
               <button type="button"
                 onClick={handleEditProfile}

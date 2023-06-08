@@ -114,7 +114,7 @@ app.get('/user/:id', keycloak.protect(), (req, res) => {
         // Update the query to retrieve limited information
         q = "SELECT id, first_name, last_name, email, profile_pic  FROM users WHERE id = " + userId;
       } else {
-        q = "SELECT id, first_name, last_name, email, phone_number, date_of_joining, profile_pic FROM users WHERE id = " + userId;
+        q = "SELECT id, first_name, last_name, email, phone_number, date_of_joining, profile_pic, department FROM users WHERE id = " + userId;
       }
 
       db.query(q, handleQueryResult);
@@ -1197,6 +1197,7 @@ app.get('/projects', keycloak.protect(), (req, res) => {
     }
   });
 });
+// ------------------------------ Get all the projects for the user ------------------------------
 
 app.get('/projects/:id', keycloak.protect(), (req, res) => {
 
@@ -1238,6 +1239,7 @@ app.get('/projects/:id', keycloak.protect(), (req, res) => {
   });
 });
 
+// ------------------------------ create new project ------------------------------
 
 app.post('/user/:id/createProject', keycloak.protect(), async (req, res) => {
   const userId = req.params.id;
@@ -1371,13 +1373,14 @@ app.post('/user/:id/createProject', keycloak.protect(), async (req, res) => {
     res.status(500).json({ message: 'Failed to create the project' });
   }
 });
+// ------------------------------ edit project by id ------------------------------
 
 app.put('/user/:id/editProject/:projectId', keycloak.protect(), async (req, res) => {
   const userId = req.params.id;
   const projectId = req.params.projectId;
   const requestUserId = req.headers['x-user-id'];
   const requestUserRole = req.headers['x-user-role'];
-  const {
+  let {
     title,
     department,
     subsystem,
@@ -1387,6 +1390,10 @@ app.put('/user/:id/editProject/:projectId', keycloak.protect(), async (req, res)
     assignedUsers,
     assignedTags = [],
   } = req.body;
+
+  if (!Array.isArray(assignedTags)) {
+    assignedTags = [];
+  }
 
   try {
     const q = "SELECT keycloak_user_id FROM users WHERE id = " + userId;
@@ -1701,6 +1708,7 @@ app.put('/user/:id/profile', keycloak.protect(), (req, res) => {
 
       // Extract the fields from the request body
       const {
+        department,
         phone,
         nationality,
         studentNum,
@@ -1710,17 +1718,18 @@ app.put('/user/:id/profile', keycloak.protect(), (req, res) => {
       } = req.body;
 
       // Validate the data
-      if (!phone || !nationality || !studentNum || !cardNum || !dateOfJoining || !birthday) {
+      if (!department || !phone || !nationality || !studentNum || !cardNum || !dateOfJoining || !birthday) {
         return res.status(400).json({ message: 'Please provide all required fields' });
       }
 
       // Update the user profile in the database
       const q = `
         UPDATE users
-        SET phone_number = ?, nationality = ?, student_number = ?, card_number = ?, date_of_joining = ?, birthday = ?
+        SET department = ?, phone_number = ?, nationality = ?, student_number = ?, card_number = ?, date_of_joining = ?, birthday = ?
         WHERE id = ?
       `;
       const values = [
+        department,
         phone,
         nationality,
         studentNum,
