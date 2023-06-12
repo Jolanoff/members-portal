@@ -84,11 +84,9 @@ app.get('/getUserId', keycloak.protect(), (req, res) => {
 // ------------------------------ Define the GET route for a user with a specific ID ------------------------------
 app.get('/user/:id', keycloak.protect(), (req, res) => {
   const userId = req.params.id;
-  // Extract the requesting user's ID and role from the request headers
   const requestUserId = req.headers['x-user-id'];
   const requestUserRole = req.headers['x-user-role'];
 
-  // Check if the user is found
   const handleQueryResult = (err, data) => {
     if (err) return res.json(err);
     if (data.length > 0) {
@@ -98,7 +96,6 @@ app.get('/user/:id', keycloak.protect(), (req, res) => {
     }
   };
 
-  // Extract the Keycloak user ID from the profile
   const selectKeycloakUserId = "SELECT keycloak_user_id FROM users WHERE id = " + userId;
   db.query(selectKeycloakUserId, (err, data) => {
     if (err) return res.json(err);
@@ -106,15 +103,21 @@ app.get('/user/:id', keycloak.protect(), (req, res) => {
       const profileKeycloakUserId = data[0].keycloak_user_id;
       let q;
 
-      // Check if the requesting user is the profile owner or an admin
       if (requestUserId === profileKeycloakUserId || requestUserRole === 'admin') {
-        // Update the query to retrieve all user information
-        q = "SELECT * FROM users WHERE id = " + userId;
+        q = `SELECT users.*, GROUP_CONCAT(tags.tag_name SEPARATOR ', ') as tags FROM users 
+        LEFT JOIN user_tags ON users.id = user_tags.user_id
+        LEFT JOIN tags ON user_tags.tag_id = tags.tag_id
+        WHERE users.id = ${userId} GROUP BY users.id`;
       } else if (requestUserRole === 'former_member') {
-        // Update the query to retrieve limited information
-        q = "SELECT id, first_name, last_name, email, profile_pic  FROM users WHERE id = " + userId;
+        q = `SELECT users.id, users.first_name, users.last_name, users.email, users.profile_pic, GROUP_CONCAT(tags.tag_name SEPARATOR ', ') as tags FROM users 
+        LEFT JOIN user_tags ON users.id = user_tags.user_id
+        LEFT JOIN tags ON user_tags.tag_id = tags.tag_id
+        WHERE users.id = ${userId} GROUP BY users.id`;
       } else {
-        q = "SELECT id, first_name, last_name, email, phone_number, date_of_joining, profile_pic, department FROM users WHERE id = " + userId;
+        q = `SELECT users.id, users.first_name, users.last_name, users.email, users.phone_number, users.date_of_joining, users.profile_pic, users.department, GROUP_CONCAT(tags.tag_name SEPARATOR ', ') as tags FROM users 
+        LEFT JOIN user_tags ON users.id = user_tags.user_id
+        LEFT JOIN tags ON user_tags.tag_id = tags.tag_id
+        WHERE users.id = ${userId} GROUP BY users.id`;
       }
 
       db.query(q, handleQueryResult);
@@ -123,6 +126,7 @@ app.get('/user/:id', keycloak.protect(), (req, res) => {
     }
   });
 });
+
 
 
 
@@ -1569,6 +1573,8 @@ app.delete('/user/:id/deleteProject/:projectId', keycloak.protect(), async (req,
     res.status(500).json({ message: 'Failed to delete the project' });
   }
 });
+
+
 app.delete('/user/:id/leaveProject/:projectId', keycloak.protect(), async (req, res) => {
   const userId = req.params.id;
   const projectId = req.params.projectId;
@@ -1687,72 +1693,129 @@ app.post('/user/:id/uploadProfilePicture', upload.single('profilePicture'), asyn
 
 app.use('/uploads/profile_pictures', express.static(path.join(__dirname, 'uploads/profile_pictures')));
 
-app.put('/user/:id/profile', keycloak.protect(), (req, res) => {
+app.put('/user/:id/profile', keycloak.protect(), async (req, res) => {
   const userId = req.params.id;
   const requestUserId = req.headers['x-user-id'];
   const requestUserRole = req.headers['x-user-role'];
+  let {
+    department,
+    phone,
+    nationality,
+    studentNum,
+    cardNum,
+    dateOfJoining,
+    birthday,
+    assignedTags = [],
+  } = req.body;
 
-  try {
-    const userQuery = "SELECT keycloak_user_id FROM users WHERE id = " + userId;
-    db.query(userQuery, async (err, data) => {
-      if (err) throw err;
+  if (!Array.isArray(assignedTags)) {
+    assignedTags = [];
+  }
 
-      if (data.length === 0) {
-        return res.status(404).json("User not found");
+  const userQuery = "SELECT keycloak_user_id FROM users WHERE id = " + userId;
+  db.query(userQuery, async (err, data) => {
+    if (err) {
+      return res.json(err);
+    }
+
+    if (data.length === 0) {
+      return res.status(404).json("User not found");
+    }
+
+    const keycloakUserId = data[0].keycloak_user_id;
+    if (requestUserRole !== 'admin' && requestUserId !== keycloakUserId) {
+      return res.status(403).json({ message: 'You do not have permission to access this resource.' });
+    }
+
+    // Validate the data
+    if (!department || !phone || !nationality || !studentNum || !cardNum || !dateOfJoining || !birthday) {
+      return res.status(400).json({ message: 'Please provide all required fields' });
+    }
+
+    // Update the user profile in the database
+    const updateUserQuery = `
+      UPDATE users
+      SET department = ?, phone_number = ?, nationality = ?, student_number = ?, card_number = ?, date_of_joining = ?, birthday = ?
+      WHERE id = ?
+    `;
+    const userValues = [
+      department,
+      phone,
+      nationality,
+      studentNum,
+      cardNum,
+      dateOfJoining,
+      birthday,
+      userId,
+    ];
+
+    db.query(updateUserQuery, userValues, (err, result) => {
+      if (err) return res.json(err);
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ message: 'User not found or you do not have permission to edit the profile' });
       }
 
-      const keycloakUserId = data[0].keycloak_user_id;
-      if (requestUserRole !== 'admin' && requestUserId !== keycloakUserId) {
-        return res.status(403).json({ message: 'You do not have permission to access this resource.' });
-      }
+      // Remove existing assigned tags
+      const deleteAssignedTagsQuery = 'DELETE FROM user_tags WHERE user_id = ?';
+      db.query(deleteAssignedTagsQuery, [userId], async (err, result) => {
+        if (err) {
+          return res.json(err);
+        }
+       
+        const existingTags = assignedTags.filter(tag => tag.isExisting);
+        const newTags = assignedTags.filter(tag => !tag.isExisting);
 
-      // Extract the fields from the request body
-      const {
-        department,
-        phone,
-        nationality,
-        studentNum,
-        cardNum,
-        dateOfJoining,
-        birthday,
-      } = req.body;
-
-      // Validate the data
-      if (!department || !phone || !nationality || !studentNum || !cardNum || !dateOfJoining || !birthday) {
-        return res.status(400).json({ message: 'Please provide all required fields' });
-      }
-
-      // Update the user profile in the database
-      const q = `
-        UPDATE users
-        SET department = ?, phone_number = ?, nationality = ?, student_number = ?, card_number = ?, date_of_joining = ?, birthday = ?
-        WHERE id = ?
-      `;
-      const values = [
-        department,
-        phone,
-        nationality,
-        studentNum,
-        cardNum,
-        dateOfJoining,
-        birthday,
-        userId,
-      ];
-
-      db.query(q, values, (err, result) => {
-        if (err) return res.json(err);
-
-        if (result.affectedRows === 0) {
-          return res.status(404).json({ message: 'User not found or you do not have permission to edit the profile' });
+        for (const tag of existingTags) {
+          // Assign the existing tag to the user
+          const assignTagToUserQuery = 'INSERT IGNORE INTO user_tags (user_id, tag_id) VALUES (?, ?)';
+          await new Promise((resolve, reject) => {
+            db.query(assignTagToUserQuery, [userId, tag.tag_id], (err, result) => {
+              if (err) {
+                console.error(err);
+                reject(err);
+              } else {
+                resolve(result);
+              }
+            });
+          });
         }
 
-        return res.status(200).json({ message: 'Profile updated successfully' });
+        for (const tag of newTags) {
+          // Create the new tag
+          const createTagQuery = 'INSERT INTO tags (tag_name) VALUES (?)';
+          const newTag = await new Promise((resolve, reject) => {
+            db.query(createTagQuery, [tag.tag_name], (err, result) => {
+              if (err) {
+                console.error(err);
+                reject(err);
+              } else {
+                resolve({ tag_id: result.insertId, ...tag });
+              }
+            });
+          });
+
+          // Assign the new tag to the user
+          const assignTagToUserQuery = 'INSERT IGNORE INTO user_tags (user_id, tag_id) VALUES (?, ?)';
+          await new Promise((resolve, reject) => {
+            db.query(assignTagToUserQuery, [userId, newTag.tag_id], (err, result) => {
+              if (err) {
+                console.error(err);
+                reject(err);
+              } else {
+                resolve(result);
+              }
+            });
+          });
+        }
+
+        return res.json({ message: 'Profile updated successfully' });
       });
     });
-  } catch (error) {
-    return res.status(500).json({ message: 'Internal server error', error });
-  }
+  });
 });
+
+
 
 // ------------------------------ Get tags for admin dashboard ------------------------------
 

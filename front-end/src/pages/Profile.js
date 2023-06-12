@@ -18,7 +18,9 @@ import { ThreeDots } from 'react-loader-spinner';
 
 import UserAutosuggest from '../components/filter/UserAutosuggest';
 import ProfileImageCropper from '../components/profile/ProfileImageCropper';
-import { FaUserEdit, FaUpload, FaPlus, FaWindowClose, FaEllipsisH } from 'react-icons/fa'
+import { FaUserEdit, FaPlus, FaWindowClose, FaEllipsisH } from 'react-icons/fa'
+import { MdExpandMore } from 'react-icons/md'
+
 import TagAutosuggest from '../components/filter/TagAutosuggest';
 const Profile = () => {
   const { keycloak } = useKeycloak();
@@ -230,8 +232,6 @@ const Profile = () => {
   }
   const projectData = projects;
 
-
-
   // looping through all the studies assigned to the user
   const StudyViewItem = (item) => {
     return (
@@ -311,7 +311,8 @@ const Profile = () => {
       const parsedEndDate = new Date(selectedProject.till_date);
       setProjectEndDate(parsedEndDate);
       setDescription(selectedProject.description)
-      setAssignedTags(selectedProject.tags);
+      setAssignedProjectTags(selectedProject.tags);
+
       setAssignedUsers(
         selectedProject.team_members.map(member => {
           const nameParts = member.name.split(' ');
@@ -322,26 +323,14 @@ const Profile = () => {
           };
         })
       );
-
     }
     setIsModalOpen(true);
     SetEditProjectModal(true)
   };
 
 
-  useEffect(() => {
-    if (isModalOpen) {
-      const selectedProject = projects.find((project) => project.id === currentProjectId);
-      if (selectedProject) {
-        setAssignedTags(selectedProject.tags);
-      }
-    }
-  }, [isModalOpen, projects, currentProjectId]);
 
-  const handleTagsSelected = (selectedTags) => {
-    setAssignedTags(selectedTags);
-  };
-
+  //reset all project fields to empty
   const resetFormFields = () => {
     setTitle('');
     setDepartmentInput('');
@@ -355,6 +344,11 @@ const Profile = () => {
 
 
   const handleEditStudy = async () => {
+    if (!schoolInput || !degreeInput || !fieldOfStudyInput || !studyStartDate || !studyEndDate) {
+      setErrorAlertMessage('Please fill all the fields')
+      showErrorAlert()
+      return
+    }
     try {
       const response = await axios.put(`/user/${id}/study/${currentStudyId}`, {
         school: schoolInput,
@@ -548,6 +542,11 @@ const Profile = () => {
 
   // create new study 
   const handleAddStudy = async () => {
+    if (!schoolInput || !degreeInput || !fieldOfStudyInput || !studyStartDate || !studyEndDate) {
+      setErrorAlertMessage('Please fill all the fields')
+      showErrorAlert()
+      return
+    }
     try {
 
       const response = await axios.post(
@@ -586,6 +585,7 @@ const Profile = () => {
     }
   };
 
+
   // Handle selected users in the project modal
   const [assignedUsers, setAssignedUsers] = useState([])
   const [assignedTags, setAssignedTags] = useState([])
@@ -612,6 +612,11 @@ const Profile = () => {
   const handleCreateProject = async () => {
 
     const allAssignedUsers = [...assignedUsers, data];
+    if (!title || !departmentInput || !subsystemInput || !projectStartDate || !projectEndDate) {
+      setErrorAlertMessage('Please fill all the required fields')
+      showErrorAlert()
+      return
+    }
     try {
 
       const response = await axios.post(
@@ -624,7 +629,7 @@ const Profile = () => {
           projectEndDate: formatDate(projectEndDate),
           description: description,
           assignedUsers: allAssignedUsers,
-          assignedTags: assignedTags,
+          assignedTags: assignedProjectTags,
 
         },
         {
@@ -651,6 +656,13 @@ const Profile = () => {
 
   const handleEditProject = async () => {
     const allAssignedUsers = [...assignedUsers, data];
+
+    if (!title || !departmentInput || !subsystemInput || !projectStartDate || !projectEndDate) {
+      setErrorAlertMessage('Please fill all the required fields')
+      showErrorAlert()
+      return
+    }
+
     try {
       const response = await axios.put(
         `${process.env.REACT_APP_API_URL}/user/${id}/editProject/${currentProjectId}`,
@@ -662,7 +674,7 @@ const Profile = () => {
           projectEndDate: formatDate(projectEndDate),
           description: description,
           assignedUsers: allAssignedUsers,
-          assignedTags: assignedTags,
+          assignedTags: assignedProjectTags,
         },
         {
           headers: {
@@ -787,6 +799,7 @@ const Profile = () => {
             cardNum,
             dateOfJoining: formattedDateOfJoining,
             birthday: formattedBirthday,
+            assignedTags: assignedUserTags,
           },
           {
             headers: {
@@ -829,6 +842,40 @@ const Profile = () => {
       setErrorAlertVisable(false);
     }, 2000);
   };
+
+  const [showTagsModal, setShowTagsModal] = useState(false);
+
+  const [assignedUserTags, setAssignedUserTags] = useState([]);
+  const [assignedProjectTags, setAssignedProjectTags] = useState([]);
+  // User tags
+  useEffect(() => {
+    let tagsArray = [];
+    if (data && data.tags) {
+      const tagsString = data.tags;
+      tagsArray = tagsString.split(", ").map((tagName, index) => {
+        return { id: index, tag_name: tagName };
+      });
+    }
+    setAssignedUserTags(tagsArray);
+  }, [data]);
+
+  // Project tags
+  useEffect(() => {
+    if (isModalOpen) {
+      const selectedProject = projects.find((project) => project.id === currentProjectId);
+      if (selectedProject) {
+        setAssignedProjectTags(selectedProject.tags);
+      }
+    }
+  }, [isModalOpen, projects, currentProjectId]);
+  const handleUserTags = (tagsArray) => {
+    setAssignedUserTags(tagsArray);
+  };
+
+  const handleTagsSelected = (selectedTags) => {
+    setAssignedProjectTags(selectedTags);
+  };
+
 
 
   return (
@@ -934,6 +981,26 @@ const Profile = () => {
                   </>
                 ) : null}
 
+                <div>
+                  <p className="text-gray-600">
+                    Tags:
+
+                  </p>
+                  {data?.tags && data.tags.split(', ').length > 3 &&
+                    <button className='hover:text-blue-600 p-2' onClick={() => setShowTagsModal(true)}>
+                      <MdExpandMore className=' h-5 w-5' />
+                    </button>
+                  }
+                  <p>
+                    {data?.tags && data.tags.split(', ').slice(0, 3).map((tag, index) => (
+                      <span className="mr-1 text-xs inline-flex items-center font-bold leading-sm uppercase px-3 py-1 bg-red-200 text-red-700 rounded-full" key={index}>{tag}</span>
+                    ))}
+                  </p>
+
+                </div>
+
+
+
               </div>
             </div>
           </div>
@@ -1006,6 +1073,55 @@ const Profile = () => {
 
 
       )}
+
+      <Modal
+        isOpen={showTagsModal}
+        onRequestClose={() => setShowTagsModal(false)}
+        contentLabel="Show tags"
+        className=" flex justify-center mt-48"
+        shouldCloseOnOverlayClick={false}
+        style={{
+          overlay: {
+            backgroundColor: 'rgba(196,196,196,0.5)',
+
+          }
+        }}
+      >
+        <div className="relative p-4 w-full max-w-2xl h-full md:h-auto">
+          <div className="relative p-4 bg-white rounded-lg shadow dark:bg-gray-800 sm:p-5">
+            <div className="flex justify-between items-center pb-4 mb-4 rounded-t border-b sm:mb-5 dark:border-gray-600">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                View all tags
+              </h3>
+              <button type="button"
+                onClick={() => {
+                  setShowTagsModal(false)
+
+                }}
+                className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-toggle="defaultModal">
+                <FaWindowClose />
+              </button>
+            </div>
+
+
+            <div>
+              {data?.tags && data.tags.split(', ').map((tag, index) => (
+                <span className="ml-1 text-xs inline-flex items-center font-bold leading-sm uppercase px-3 py-1 bg-red-200 text-red-700 rounded-full" key={index}>{tag}</span>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowTagsModal(false)}
+              className=" mt-5 flex focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+
+              Close
+            </button>
+          </div>
+
+        </div>
+      </Modal>
+
+
       {/* add new study modal */}
       <Modal
         isOpen={addStudiesModal}
@@ -1464,7 +1580,7 @@ const Profile = () => {
                 </div>
                 <div>
                   <label htmlFor="tags" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tags: </label>
-                  <TagAutosuggest keycloak={keycloak} onTagsSelected={handleTagsSelected} currentTags={assignedTags} />
+                  <TagAutosuggest keycloak={keycloak} onTagsSelected={handleTagsSelected} currentTags={assignedProjectTags} />
                 </div>
               </div>
               <div>
@@ -1559,6 +1675,7 @@ const Profile = () => {
                     getSuggestionValue={(suggestion) => suggestion}
                     renderSuggestion={(suggestion) => <div className="py-2 px-4">{suggestion}</div>}
                     inputProps={{
+                      required: true,
                       className: "w-full h-10 px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:border-blue-400",
                       placeholder: 'Type your department name',
                       value: departmentInput,
@@ -1583,6 +1700,7 @@ const Profile = () => {
                     getSuggestionValue={(suggestion) => suggestion}
                     renderSuggestion={(suggestion) => <div className="py-2 px-4">{suggestion}</div>}
                     inputProps={{
+                      required: true,
                       className: "w-full h-10 px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:border-blue-400",
                       placeholder: '',
                       value: subsystemInput,
@@ -1624,7 +1742,7 @@ const Profile = () => {
                 </div>
                 <div>
                   <label htmlFor="tags" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tags: </label>
-                  <TagAutosuggest keycloak={keycloak} onTagsSelected={handleTagsSelected} currentTags={assignedTags} />
+                  <TagAutosuggest keycloak={keycloak} onTagsSelected={handleTagsSelected} currentTags={assignedProjectTags} />
 
                 </div>
               </div>
@@ -1883,8 +2001,12 @@ const Profile = () => {
                 />
               </div>
               <div className="mt-4">
-
+                <label htmlFor="tags" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                  Tags:
+                </label>
+                <TagAutosuggest keycloak={keycloak} onTagsSelected={handleUserTags} currentTags={assignedUserTags} />
               </div>
+
               <button type="button"
                 onClick={handleEditProfile}
                 className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">

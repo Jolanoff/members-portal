@@ -212,7 +212,7 @@ const TagControl = () => {
                         </div>
 
                         <div className="grid gap-4 mb-4 sm:grid-cols-1">
-                            <label htmlFor="newTag" className='place-self-center font-bold font-mono'>Tag name</label>
+                            <label htmlFor="newTag" className='place-self-center font-bold font-mono'></label>
                             <input
                                 id='newTag'
                                 className="pl-10 pr-4 py-2 border rounded-lg"
@@ -264,7 +264,7 @@ const TagControl = () => {
 
                         <div className="grid gap-4 mb-4 sm:grid-cols-1">
                             <label htmlFor="newTag" className='place-self-center font-bold font-mono'>
-                                Tag name
+                               
                             </label>
                             <input
                                 id='newTag'
