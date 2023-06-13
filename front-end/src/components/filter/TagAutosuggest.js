@@ -24,14 +24,21 @@ const TagAutosuggest = ({ keycloak, onTagsSelected, currentTags }) => {
             console.log(err);
         }
     };
-
     const addTag = (tag) => {
+        const MAX_TAGS = 8;
+      
+        if(currentTags.length >= MAX_TAGS) {
+          alert('You cannot add more than ' + MAX_TAGS + ' tags'); 
+          return;
+        }
+      
         if (!currentTags.some((t) => t.tag_name === tag.tag_name)) {
           onTagsSelected([...currentTags, tag]);
         }
+      
         setTagInput('');
       };
-
+      
     const removeTag = (event, tagName) => {
         event.preventDefault();
         const updatedTags = currentTags.filter((tag) => tag.tag_name !== tagName);
@@ -130,6 +137,7 @@ const TagAutosuggest = ({ keycloak, onTagsSelected, currentTags }) => {
                     value: tagInput,
                     onChange: onTagInputChange,
                     onKeyPress: handleKeyPress,
+                    maxLength: 20,
                 }}
                 theme={{
                     container: 'relative block w-full',

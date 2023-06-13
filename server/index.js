@@ -839,6 +839,12 @@ app.delete('/deleteUser/:id', keycloak.protect('admin'), async (req, res) => {
     }
 
     try {
+      // Delete user's tags
+      const deleteTagsQuery = "DELETE FROM user_tags WHERE user_id = ?";
+      db.query(deleteTagsQuery, [id], (err, data) => {
+        if (err) return res.json(err);
+      });
+
       // Delete user's projects
       const deleteEducationQuery = "DELETE FROM team_member_projects WHERE team_member_id = " + id;
       db.query(deleteEducationQuery, (err, data) => {
@@ -1693,10 +1699,14 @@ app.post('/user/:id/uploadProfilePicture', upload.single('profilePicture'), asyn
 
 app.use('/uploads/profile_pictures', express.static(path.join(__dirname, 'uploads/profile_pictures')));
 
+
+
 app.put('/user/:id/profile', keycloak.protect(), async (req, res) => {
   const userId = req.params.id;
   const requestUserId = req.headers['x-user-id'];
   const requestUserRole = req.headers['x-user-role'];
+
+  const MAX_TAGS = 8;
   let {
     department,
     phone,
@@ -1710,6 +1720,10 @@ app.put('/user/:id/profile', keycloak.protect(), async (req, res) => {
 
   if (!Array.isArray(assignedTags)) {
     assignedTags = [];
+  }
+  
+  if(assignedTags.length > MAX_TAGS){
+    return res.status(400).json({ error: 'You cannot assign more than ' + MAX_TAGS + ' tags to a user' });
   }
 
   const userQuery = "SELECT keycloak_user_id FROM users WHERE id = " + userId;
@@ -1762,7 +1776,7 @@ app.put('/user/:id/profile', keycloak.protect(), async (req, res) => {
         if (err) {
           return res.json(err);
         }
-       
+
         const existingTags = assignedTags.filter(tag => tag.isExisting);
         const newTags = assignedTags.filter(tag => !tag.isExisting);
 
@@ -1782,23 +1796,49 @@ app.put('/user/:id/profile', keycloak.protect(), async (req, res) => {
         }
 
         for (const tag of newTags) {
-          // Create the new tag
-          const createTagQuery = 'INSERT INTO tags (tag_name) VALUES (?)';
-          const newTag = await new Promise((resolve, reject) => {
-            db.query(createTagQuery, [tag.tag_name], (err, result) => {
-              if (err) {
-                console.error(err);
-                reject(err);
-              } else {
-                resolve({ tag_id: result.insertId, ...tag });
-              }
-            });
-          });
+          // Check if the tag already exists
+          const checkTagExistsQuery = 'SELECT tag_id FROM tags WHERE tag_name = ?';
+          let tagId;
 
-          // Assign the new tag to the user
+          try {
+            const tagExists = await new Promise((resolve, reject) => {
+              db.query(checkTagExistsQuery, [tag.tag_name], (err, result) => {
+                if (err) {
+                  console.error(err);
+                  reject(err);
+                } else {
+                  resolve(result);
+                }
+              });
+            });
+
+            if (tagExists.length > 0) {
+              // If tag already exists, get the tag id
+              tagId = tagExists[0].tag_id;
+            } else {
+              // If tag does not exist, create the new tag
+              const createTagQuery = 'INSERT INTO tags (tag_name) VALUES (?)';
+              const newTag = await new Promise((resolve, reject) => {
+                db.query(createTagQuery, [tag.tag_name], (err, result) => {
+                  if (err) {
+                    console.error(err);
+                    reject(err);
+                  } else {
+                    resolve({ tag_id: result.insertId, ...tag });
+                  }
+                });
+              });
+              tagId = newTag.tag_id;
+            }
+          } catch (err) {
+            console.error(err);
+            return res.json(err);
+          }
+
+          // Assign the tag (new or existing) to the user
           const assignTagToUserQuery = 'INSERT IGNORE INTO user_tags (user_id, tag_id) VALUES (?, ?)';
           await new Promise((resolve, reject) => {
-            db.query(assignTagToUserQuery, [userId, newTag.tag_id], (err, result) => {
+            db.query(assignTagToUserQuery, [userId, tagId], (err, result) => {
               if (err) {
                 console.error(err);
                 reject(err);
@@ -1897,17 +1937,23 @@ app.delete('/tags/:id', keycloak.protect('admin'), (req, res) => {
   db.query(deleteProjectTagsQ, [id], (err, data) => {
     if (err) return res.status(500).json(err);
 
-    // If successful, delete from tags table
-    const deleteTagsQ = "DELETE FROM tags WHERE tag_id = ?";
+    // Delete the tag from user_tags table
+    const deleteUserTagsQ = "DELETE FROM user_tags WHERE tag_id = ?";
 
-    db.query(deleteTagsQ, [id], (err, data) => {
+    db.query(deleteUserTagsQ, [id], (err, data) => {
       if (err) return res.status(500).json(err);
-      return res.status(200).send({ message: 'Tag deleted successfully' });
+
+      // If successful, delete from tags table
+      const deleteTagsQ = "DELETE FROM tags WHERE tag_id = ?";
+
+      db.query(deleteTagsQ, [id], (err, data) => {
+        if (err) return res.status(500).json(err);
+        return res.status(200).send({ message: 'Tag deleted successfully' });
+      });
     });
   });
 });
 
-0.
 
 app.get('/filters', (req, res) => {
   const degreesQuery = "SELECT DISTINCT degree FROM education";

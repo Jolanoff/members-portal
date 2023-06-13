@@ -246,7 +246,7 @@ const RestoreTable = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredMembers.length === 0
+                            {currentData.length === 0
                                 ? (
                                     <tr>
                                         <td>
