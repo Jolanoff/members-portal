@@ -179,30 +179,32 @@ app.get('/users', keycloak.protect(), (req, res) => {
   const requestUserRole = req.headers['x-user-role'];
 
   const q = `
-    SELECT 
-      users.id, 
-      users.first_name, 
-      users.last_name, 
-      users.email, 
-      ${requestUserRole !== 'former_member' ? 'users.phone_number,' : ''}
-      users.profile_pic,
-      users.current,
-      GROUP_CONCAT(DISTINCT education.degree) as degrees,
-      GROUP_CONCAT(DISTINCT projects.department) as departments,
-      GROUP_CONCAT(DISTINCT projects.subsystem) as subsystems
-    FROM users 
-    LEFT JOIN education ON users.id = education.team_member_id
-    LEFT JOIN team_member_projects ON users.id = team_member_projects.team_member_id
-    LEFT JOIN projects ON team_member_projects.project_id = projects.id
-    WHERE users.status = true
-    GROUP BY users.id
-  `;
+  SELECT 
+    users.id, 
+    users.first_name, 
+    users.last_name, 
+    users.email, 
+    ${requestUserRole !== 'former_member' ? 'users.phone_number,' : ''}
+    users.profile_pic,
+    users.department,
+    users.current,
+    GROUP_CONCAT(DISTINCT tags.tag_name) as tags,
+    GROUP_CONCAT(DISTINCT projects.subsystem) as subsystems
+  FROM users 
+  LEFT JOIN user_tags ON users.id = user_tags.user_id
+  LEFT JOIN tags ON user_tags.tag_id = tags.tag_id
+  LEFT JOIN team_member_projects ON users.id = team_member_projects.team_member_id
+  LEFT JOIN projects ON team_member_projects.project_id = projects.id
+  WHERE users.status = true
+  GROUP BY users.id
+`;
+
 
   db.query(q, (err, data) => {
     if (err) return res.json(err);
     const members = data.map(item => ({
       ...item,
-      degrees: item.degrees ? item.degrees.split(',') : [],
+      tags: item.tags ? item.tags.split(',') : [],
       departments: item.departments ? item.departments.split(',') : [],
       subsystems: item.subsystems ? item.subsystems.split(',') : []
     }));
@@ -1721,8 +1723,8 @@ app.put('/user/:id/profile', keycloak.protect(), async (req, res) => {
   if (!Array.isArray(assignedTags)) {
     assignedTags = [];
   }
-  
-  if(assignedTags.length > MAX_TAGS){
+
+  if (assignedTags.length > MAX_TAGS) {
     return res.status(400).json({ error: 'You cannot assign more than ' + MAX_TAGS + ' tags to a user' });
   }
 
@@ -1956,12 +1958,17 @@ app.delete('/tags/:id', keycloak.protect('admin'), (req, res) => {
 
 
 app.get('/filters', (req, res) => {
-  const degreesQuery = "SELECT DISTINCT degree FROM education";
-  const departmentsQuery = "SELECT DISTINCT department FROM projects";
+  const tagsQuery = `
+  SELECT DISTINCT tags.tag_name 
+  FROM tags 
+  JOIN user_tags ON tags.tag_id = user_tags.tag_id
+`;
+
+  const departmentsQuery = "SELECT DISTINCT department FROM users";
   const subsystemsQuery = "SELECT DISTINCT subsystem FROM projects";
 
-  db.query(degreesQuery, (degreesError, degreesData) => {
-    if (degreesError) {
+  db.query(tagsQuery, (tagsError, tagsData) => {
+    if (tagsError) {
       return res.status(500).json({ error: "Internal Server Error" });
     }
 
@@ -1976,9 +1983,9 @@ app.get('/filters', (req, res) => {
         }
 
         return res.status(200).json({
-          degrees: degreesData.map(item => item.degree),
+          tags: tagsData.map(item => item.tag_name),
           departments: departmentsData.map(item => item.department),
-          subsystems: subsystemsData.map(item => item.subsystem),
+          subsystems: subsystemsData.map(item => item.subsystem)
         });
       });
     });

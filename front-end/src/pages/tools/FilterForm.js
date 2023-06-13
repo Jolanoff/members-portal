@@ -4,9 +4,9 @@ import { DownOutlined } from '@ant-design/icons';
 import axios from 'axios';
 
 const FilterForm = ({ handleSelectFilter }) => {
-  const [filters, setFilters] = useState({});
+  const [filters, setFilters] = useState({ tags: [], departments: [], subsystems: [] });
   const [selectedFilter, setSelectedFilter] = useState({ filterType: '', filterValue: '' });
-  const [searchText, setSearchText] = useState({ degree: '', department: '', subsystem: '' });
+  const [searchText, setSearchText] = useState({ tags: '', department: '', subsystem: '' });
 
   useEffect(() => {
     const fetchFilters = async () => {
@@ -40,9 +40,8 @@ const FilterForm = ({ handleSelectFilter }) => {
   };
 
   const renderMenuItem = (item, filterType) => (
-    item.toLowerCase().includes(searchText[filterType].toLowerCase()) && (
+    item && item.toLowerCase().includes(searchText[filterType].toLowerCase()) && (
       <Menu.Item
-
         key={item}
         onClick={() => handleFilterSelect(filterType, item)}
       >
@@ -64,16 +63,16 @@ const FilterForm = ({ handleSelectFilter }) => {
 
   const ScrollableMenu = ({ items, filterType }) => (
     <div className='overflow-y-auto max-h-48'>
-      {items.map(item => renderMenuItem(item, filterType))}
+      {items && items.map(item => renderMenuItem(item, filterType))}
     </div>
   );
 
   const menu = (
     <Menu>
-      <Menu.SubMenu key="degreeGroup" title="Degree">
-        {renderSearch('degree')}
+      <Menu.SubMenu key="tagsGroup" title="Tags">
+        {renderSearch('tag')}
         <Menu.Divider />
-        <ScrollableMenu items={filters.degrees} filterType='degree' />
+        <ScrollableMenu items={filters.tags} filterType='tags' />
       </Menu.SubMenu>
       <Menu.SubMenu key="departmentGroup" title="Department">
         {renderSearch('department')}
@@ -105,8 +104,6 @@ const FilterForm = ({ handleSelectFilter }) => {
           {`${selectedFilter.filterType}: ${selectedFilter.filterValue}`}
         </Tag>
       )}
-
-
     </Space>
   );
 };

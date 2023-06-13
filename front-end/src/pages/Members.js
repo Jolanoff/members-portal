@@ -97,14 +97,12 @@ function Members() {
 
   // pagination  
   // Filtered Set based on activeTab and search input
-  const [selectedFilter, setSelectedFilter] = useState({ degree: '', department: '', subsystem: '' });
+  const [selectedFilter, setSelectedFilter] = useState({ tags: '', department: '', subsystem: '' });
+
 
   const handleSelectFilter = ({ filterType, filterValue }) => {
-    setSelectedFilter({ degree: '', department: '', subsystem: '', [filterType]: filterValue });
+    setSelectedFilter({ tags: '', department: '', subsystem: '', [filterType]: filterValue });
   }
-
-
-
   const indexLast = currentPage * dataPerpage;
   const indexFirst = indexLast - dataPerpage;
   // Current Data to be displayed based on pagination
@@ -141,16 +139,21 @@ function Members() {
     }
 
     // Apply filters
-    if (selectedFilter.degree) {
+    if (selectedFilter.tags) {
 
-      result = result.filter(x => x.degrees.includes(selectedFilter.degree));
+      result = result.filter(x => {
+
+        return x.tags.includes(selectedFilter.tags);
+      });
     }
+
     if (selectedFilter.department) {
-      result = result.filter(x => x.departments.includes(selectedFilter.department));
+      result = result.filter(x => x.department === selectedFilter.department);
     }
     if (selectedFilter.subsystem) {
       result = result.filter(x => x.subsystems.includes(selectedFilter.subsystem));
     }
+
 
     if (result.length === 0) {
       setNoData(true);
