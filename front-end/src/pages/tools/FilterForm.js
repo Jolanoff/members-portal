@@ -5,7 +5,7 @@ import axios from 'axios';
 
 const FilterForm = ({ handleSelectFilter }) => {
   const [filters, setFilters] = useState({ tags: [], departments: [], subsystems: [] });
-  const [selectedFilter, setSelectedFilter] = useState({ filterType: '', filterValue: '' });
+  const [selectedFilter, setSelectedFilter] = useState({ tags: [], department: [], subsystem: [] });
   const [searchText, setSearchText] = useState({ tags: '', department: '', subsystem: '' });
 
   useEffect(() => {
@@ -29,15 +29,27 @@ const FilterForm = ({ handleSelectFilter }) => {
     e.stopPropagation();
   };
 
-  const handleFilterSelect = (filterType, filterValue) => {
-    setSelectedFilter({ filterType, filterValue });
-    handleSelectFilter({ filterType, filterValue });
-  };
+ 
+useEffect(() => {
+  handleSelectFilter(selectedFilter);
+}, [selectedFilter, handleSelectFilter]);
 
-  const handleFilterReset = () => {
-    setSelectedFilter({ filterType: '', filterValue: '' });
-    handleSelectFilter({ filterType: '', filterValue: '' });
-  };
+const handleFilterSelect = (filterType, filterValue) => {
+  if (!selectedFilter[filterType].includes(filterValue)) {
+    setSelectedFilter({
+      ...selectedFilter,
+      [filterType]: [...(selectedFilter[filterType] || []), filterValue],
+    });
+  }
+};
+
+const handleFilterReset = (filterType, filterValue) => {
+  setSelectedFilter(prevState => {
+    const newFilter = { ...prevState };
+    newFilter[filterType] = newFilter[filterType].filter(value => value !== filterValue);
+    return newFilter;
+  });
+};
 
   const renderMenuItem = (item, filterType) => (
     item && item.toLowerCase().includes(searchText[filterType].toLowerCase()) && (
@@ -62,7 +74,7 @@ const FilterForm = ({ handleSelectFilter }) => {
   );
 
   const ScrollableMenu = ({ items, filterType }) => (
-    <div className='overflow-y-auto max-h-48'>
+    <div className='overflow-y-auto max-h-48 uppercase'>
       {items && items.map(item => renderMenuItem(item, filterType))}
     </div>
   );
@@ -84,6 +96,7 @@ const FilterForm = ({ handleSelectFilter }) => {
         <Menu.Divider />
         <ScrollableMenu items={filters.subsystems} filterType='subsystem' />
       </Menu.SubMenu>
+
     </Menu>
   );
 
@@ -99,11 +112,15 @@ const FilterForm = ({ handleSelectFilter }) => {
           </Button>
         </Dropdown>
       </div>
-      {selectedFilter.filterType && selectedFilter.filterValue && (
-        <Tag closable onClose={handleFilterReset}>
-          {`${selectedFilter.filterType}: ${selectedFilter.filterValue}`}
-        </Tag>
+
+      {Object.keys(selectedFilter).map(filterType =>
+        selectedFilter[filterType].map(filterValue =>
+          <Tag className='uppercase' key={filterType + filterValue} closable onClose={() => handleFilterReset(filterType, filterValue)}>
+            {`${filterType}: ${filterValue}`}
+          </Tag>
+        )
       )}
+
     </Space>
   );
 };

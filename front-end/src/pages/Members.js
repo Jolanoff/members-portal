@@ -97,12 +97,10 @@ function Members() {
 
   // pagination  
   // Filtered Set based on activeTab and search input
-  const [selectedFilter, setSelectedFilter] = useState({ tags: '', department: '', subsystem: '' });
-
-
-  const handleSelectFilter = ({ filterType, filterValue }) => {
-    setSelectedFilter({ tags: '', department: '', subsystem: '', [filterType]: filterValue });
-  }
+  const [selectedFilter, setSelectedFilter] = useState({ tags: [], department: [], subsystem: [] });
+  const handleSelectFilter = (newSelectedFilter) => {
+    setSelectedFilter(newSelectedFilter);
+  };
   const indexLast = currentPage * dataPerpage;
   const indexFirst = indexLast - dataPerpage;
   // Current Data to be displayed based on pagination
@@ -139,20 +137,14 @@ function Members() {
     }
 
     // Apply filters
-    if (selectedFilter.tags) {
+    result = result.filter(x => {
+      const tagFilter = !selectedFilter.tags.length || selectedFilter.tags.some(tag => x.tags.includes(tag));
+      const departmentFilter = !selectedFilter.department.length || selectedFilter.department.includes(x.department);
+      const subsystemFilter = !selectedFilter.subsystem.length || selectedFilter.subsystem.some(subsystem => x.subsystems.includes(subsystem));
 
-      result = result.filter(x => {
+      return tagFilter && departmentFilter && subsystemFilter;
+    });
 
-        return x.tags.includes(selectedFilter.tags);
-      });
-    }
-
-    if (selectedFilter.department) {
-      result = result.filter(x => x.department === selectedFilter.department);
-    }
-    if (selectedFilter.subsystem) {
-      result = result.filter(x => x.subsystems.includes(selectedFilter.subsystem));
-    }
 
 
     if (result.length === 0) {
