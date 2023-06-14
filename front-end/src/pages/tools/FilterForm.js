@@ -28,29 +28,25 @@ const FilterForm = ({ handleSelectFilter }) => {
   const handleInputClick = (e) => {
     e.stopPropagation();
   };
+  useEffect(() => {
+    handleSelectFilter(selectedFilter);
+  }, [selectedFilter, handleSelectFilter]);
 
- 
-useEffect(() => {
-  handleSelectFilter(selectedFilter);
-}, [selectedFilter, handleSelectFilter]);
-
-const handleFilterSelect = (filterType, filterValue) => {
-  if (!selectedFilter[filterType].includes(filterValue)) {
-    setSelectedFilter({
-      ...selectedFilter,
-      [filterType]: [...(selectedFilter[filterType] || []), filterValue],
+  const handleFilterSelect = (filterType, filterValue) => {
+    if (!selectedFilter[filterType].includes(filterValue)) {
+      setSelectedFilter({
+        ...selectedFilter,
+        [filterType]: [...(selectedFilter[filterType] || []), filterValue],
+      });
+    }
+  };
+  const handleFilterReset = (filterType, filterValue) => {
+    setSelectedFilter(prevState => {
+      const newFilter = { ...prevState };
+      newFilter[filterType] = newFilter[filterType].filter(value => value !== filterValue);
+      return newFilter;
     });
-  }
-};
-
-const handleFilterReset = (filterType, filterValue) => {
-  setSelectedFilter(prevState => {
-    const newFilter = { ...prevState };
-    newFilter[filterType] = newFilter[filterType].filter(value => value !== filterValue);
-    return newFilter;
-  });
-};
-
+  };
   const renderMenuItem = (item, filterType) => (
     item && item.toLowerCase().includes(searchText[filterType].toLowerCase()) && (
       <Menu.Item
@@ -61,7 +57,6 @@ const handleFilterReset = (filterType, filterValue) => {
       </Menu.Item>
     )
   );
-
   const renderSearch = (filterType) => (
     <Menu.Item key="search" onClick={e => e.stopPropagation()}>
       <input

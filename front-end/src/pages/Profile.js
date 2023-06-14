@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useKeycloak } from '../KeycloakContext';
@@ -22,10 +22,12 @@ import { FaUserEdit, FaPlus, FaWindowClose, FaEllipsisH } from 'react-icons/fa'
 import { MdExpandMore } from 'react-icons/md'
 
 import TagAutosuggest from '../components/filter/TagAutosuggest';
-
+//phone number input
 import 'react-phone-number-input/style.css'
 import PhoneInput from 'react-phone-number-input'
-import { parsePhoneNumber, isValidPhoneNumber  } from 'react-phone-number-input'
+import { parsePhoneNumber, isValidPhoneNumber } from 'react-phone-number-input'
+// country input
+import { CountryDropdown } from 'react-country-region-selector'
 
 const Profile = () => {
   const { keycloak } = useKeycloak();
@@ -62,7 +64,7 @@ const Profile = () => {
   const [currentStudyId, setCurrentStudyId] = useState(null);
   const [currentProjectId, setCurrentProjectId] = useState(null);
 
-  
+
 
 
   // loading 
@@ -335,6 +337,9 @@ const Profile = () => {
     SetEditProjectModal(true)
   };
 
+  const selectNationality = (val) => {
+    setNationality(val);
+  }
 
 
   //reset all project fields to empty
@@ -890,14 +895,12 @@ const Profile = () => {
         const formattedWithSpace = formattedPhone.replace(parsedPhoneNumber.countryCallingCode, parsedPhoneNumber.countryCallingCode + ' ');
         setPhone(formattedWithSpace);
       } else {
-        // If it's not a valid phone number, we still want to update the state
         setPhone(number);
       }
     } else {
       setPhone('');
     }
   };
-  
 
   return (
     <div>
@@ -1906,7 +1909,7 @@ const Profile = () => {
                 <ProfileImageCropper onUpload={handleUploadCroppedImage} />
               </div>
               <div className="mt-4">
-                <label htmlFor="nationality" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                <label htmlFor="Department" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                   Department:
                 </label>
                 <input
@@ -1937,13 +1940,13 @@ const Profile = () => {
                 <label htmlFor="nationality" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                   Nationality:
                 </label>
-                <input
+                <CountryDropdown
                   type="text"
                   name="nationality"
                   id="nationality"
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                  classes="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                   value={nationality}
-                  onChange={(e) => setNationality(e.target.value)}
+                  onChange={(val) => selectNationality(val)}
                   required
                 />
               </div>
