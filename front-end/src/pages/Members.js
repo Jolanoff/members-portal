@@ -9,6 +9,8 @@ import { Tabs } from 'flowbite-react'
 import FilterForm from './tools/FilterForm';
 import { ThreeDots } from 'react-loader-spinner';
 
+import { CSVLink } from 'react-csv';
+import { Checkbox, Menu, Dropdown, Button } from 'antd';
 
 function Members() {
 
@@ -119,8 +121,8 @@ function Members() {
       result = result.filter((member) => {
         const name = ((member.first_name || '') + ' ' + (member.last_name || '')).toLowerCase();
         const email = (member.email || '').toLowerCase();
-        let phoneNumberString = (member.phone_number ? member.phone_number.replace(/\D/g,'') : '');
-    
+        let phoneNumberString = (member.phone_number ? member.phone_number.replace(/\D/g, '') : '');
+
         return inputValues.every(input => {
           let isInputNumeric = /^\d+$/.test(input);
           let processedInput = isInputNumeric ? input.replace(/^0+/, '').replace(/\D/g, '') : input;
@@ -168,6 +170,94 @@ function Members() {
   }, [data, activeTab, selectedFilter]);
 
 
+
+  const [selectedFields, setSelectedFields] = useState({
+    first_name: true,
+    last_name: true,
+    email: true,
+    phone_number: true,
+  });
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+  const handleFieldChange = (e) => {
+    e.preventDefault();
+    e.nativeEvent.stopImmediatePropagation();
+    setSelectedFields({ ...selectedFields, [e.target.name]: e.target.checked });
+  };
+  const menuItems = [
+    {
+      key: 'first_name',
+      label: (
+        <Checkbox
+          name="first_name"
+          checked={selectedFields.first_name}
+          onChange={handleFieldChange}
+        >
+          First Name
+        </Checkbox>
+      ),
+    },
+    {
+      key: 'last_name',
+      label: (
+        <Checkbox
+          name="last_name"
+          checked={selectedFields.last_name}
+          onChange={handleFieldChange}
+        >
+          Last Name
+        </Checkbox>
+      ),
+    },
+    {
+      key: 'email',
+      label: (
+        <Checkbox
+          name="email"
+          checked={selectedFields.email}
+          onChange={handleFieldChange}
+        >
+          Email
+        </Checkbox>
+      ),
+    },
+    {
+      key: 'phone_number',
+      label: (
+        userRole !== 'former_member' && (
+          <Checkbox
+            name="phone_number"
+            checked={selectedFields.phone_number}
+            onClick={handleFieldChange}
+          >
+            Phone Number
+          </Checkbox>
+        )
+      ),
+    },
+    {
+      key: 'csv_link',
+      label: (
+        <CSVLink
+          data={filteredMembers.map(member => {
+            const newMember = {};
+            Object.keys(selectedFields).forEach(field => {
+              if (selectedFields[field]) {
+                newMember[field] = member[field];
+              }
+            });
+            return newMember;
+          })}
+          headers={Object.keys(selectedFields).filter(key => selectedFields[key]).map(field => {
+            return { label: field.charAt(0).toUpperCase() + field.slice(1).replace('_', ' '), key: field };
+          })}
+          filename={"my-filtered-data.csv"}
+        >
+          Export to CSV
+        </CSVLink>
+      )
+    },
+  ];
+  
 
   return (
     <div>
@@ -233,10 +323,15 @@ function Members() {
                 </li>
 
               </ul>
-              <div className='flex'>
+              <div className='flex justify-between'>
                 <div className='mb-5'>
                   <FilterForm handleSelectFilter={handleSelectFilter} />
 
+                </div>
+                <div>
+                <Dropdown menu={{ items: menuItems }} open={dropdownVisible} onOpenChange={setDropdownVisible} placement="bottomLeft" trigger={['click']}>
+                    <Button className='mb-5'>Export</Button>
+                  </Dropdown>
                 </div>
               </div>
 
