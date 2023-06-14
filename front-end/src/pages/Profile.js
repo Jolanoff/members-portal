@@ -22,6 +22,11 @@ import { FaUserEdit, FaPlus, FaWindowClose, FaEllipsisH } from 'react-icons/fa'
 import { MdExpandMore } from 'react-icons/md'
 
 import TagAutosuggest from '../components/filter/TagAutosuggest';
+
+import 'react-phone-number-input/style.css'
+import PhoneInput from 'react-phone-number-input'
+import { parsePhoneNumber, isValidPhoneNumber  } from 'react-phone-number-input'
+
 const Profile = () => {
   const { keycloak } = useKeycloak();
   const [data, setData] = useState({});
@@ -56,6 +61,8 @@ const Profile = () => {
   const id = useParams().id;
   const [currentStudyId, setCurrentStudyId] = useState(null);
   const [currentProjectId, setCurrentProjectId] = useState(null);
+
+  
 
 
   // loading 
@@ -588,7 +595,6 @@ const Profile = () => {
 
   // Handle selected users in the project modal
   const [assignedUsers, setAssignedUsers] = useState([])
-  const [assignedTags, setAssignedTags] = useState([])
   const [title, setTitle] = useState('');
   const [projectStartDate, setProjectStartDate] = useState(new Date());
   const [projectEndDate, setProjectEndDate] = useState(new Date());
@@ -876,7 +882,22 @@ const Profile = () => {
     setAssignedProjectTags(selectedTags);
   };
 
-
+  const handlePhoneChange = (number) => {
+    if (number) {
+      if (isValidPhoneNumber(number)) {
+        const parsedPhoneNumber = parsePhoneNumber(number);
+        const formattedPhone = parsedPhoneNumber.formatInternational();
+        const formattedWithSpace = formattedPhone.replace(parsedPhoneNumber.countryCallingCode, parsedPhoneNumber.countryCallingCode + ' ');
+        setPhone(formattedWithSpace);
+      } else {
+        // If it's not a valid phone number, we still want to update the state
+        setPhone(number);
+      }
+    } else {
+      setPhone('');
+    }
+  };
+  
 
   return (
     <div>
@@ -1902,20 +1923,12 @@ const Profile = () => {
                 <label htmlFor="phone" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                   Phone number:
                 </label>
-                <input
+                <PhoneInput
                   type="tel"
                   name="phone"
                   id="phone"
-                  onKeyPress={(e) => {
-                    if (!/[0-9+]/.test(e.key)) {
-                      e.preventDefault();
-                    }
-                  }}
-
-                  maxLength="15"
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={handlePhoneChange}
                   required
                 />
 

@@ -113,24 +113,25 @@ function Members() {
   const updateFilteredMembers = (searchTerm = '') => {
     let result = [...data];
     const canSeePhoneNumber = !keycloak.hasRealmRole('former_member');
-
     // Filter based on search term
     if (searchTerm) {
       const inputValues = searchTerm.toLowerCase().split(' ');
-
       result = result.filter((member) => {
         const name = ((member.first_name || '') + ' ' + (member.last_name || '')).toLowerCase();
         const email = (member.email || '').toLowerCase();
-        const phoneNumberString = (member.phone_number ? member.phone_number.toString() : '');
-
-        return inputValues.every(input => (
-          name.includes(input) ||
-          email.includes(input) ||
-          (canSeePhoneNumber && phoneNumberString.includes(input))
-        ));
+        let phoneNumberString = (member.phone_number ? member.phone_number.replace(/\D/g,'') : '');
+    
+        return inputValues.every(input => {
+          let isInputNumeric = /^\d+$/.test(input);
+          let processedInput = isInputNumeric ? input.replace(/^0+/, '').replace(/\D/g, '') : input;
+          return (
+            name.includes(input) ||
+            email.includes(input) ||
+            (canSeePhoneNumber && isInputNumeric && phoneNumberString.includes(processedInput))
+          );
+        });
       });
     }
-
     // Filter based on activeTab
     if (activeTab !== 0) {
       result = result.filter(x => (activeTab === 1 && x.current) || (activeTab === 2 && !x.current));
