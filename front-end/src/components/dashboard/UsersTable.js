@@ -287,10 +287,9 @@ const UsersTable = () => {
                     password: '',
                     role: 'user',
                 });
-                setSuccessAlertMessage(responseData);
+                setSuccessAlertMessage(response.data);
                 showSuccessAlert();
             }
-            const responseData = await response.data;
             fetchData();
             SetCreateModal(false)
 
@@ -357,8 +356,9 @@ const UsersTable = () => {
 
     const passwordPolicy = (
         <ul>
-            <li>* You password must be atleast 8 characters long</li>
-            <li>* You password must contain atleast one uppercase character</li>
+            <li>* Your password must be atleast 8 characters long</li>
+            <li>* Your password must contain atleast one uppercase character</li>
+            <li>* Your password should be unique and not used before</li>
         </ul>
     );
 

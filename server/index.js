@@ -307,12 +307,13 @@ app.post('/createUser', keycloak.protect('admin'), async (req, res) => {
 
     const userId = createdUser[0].id;
 
-    const q = "INSERT INTO users(`first_name`, `last_name`,`email`, `keycloak_user_id`) VALUES (?)";
+    const q = "INSERT INTO users(`first_name`, `last_name`,`email`, `keycloak_user_id`, `date_of_joining`) VALUES (?)";
     const values = [
       req.body.firstName,
       req.body.lastName,
       req.body.email,
       userId,
+      new Date()
     ];
     db.query(q, [values], (err, data) => {
       if (err) {

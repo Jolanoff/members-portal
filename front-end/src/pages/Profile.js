@@ -132,7 +132,7 @@ const Profile = () => {
       setProjects(response.data)
 
     } catch (err) {
-      console.log(err)
+      
     }
 
   }

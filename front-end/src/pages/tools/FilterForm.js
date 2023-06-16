@@ -77,7 +77,7 @@ const FilterForm = ({ handleSelectFilter }) => {
   const menu = (
     <Menu>
       <Menu.SubMenu key="tagsGroup" title="Tags">
-        {renderSearch('tag')}
+        {renderSearch('tags')}
         <Menu.Divider />
         <ScrollableMenu items={filters.tags} filterType='tags' />
       </Menu.SubMenu>
