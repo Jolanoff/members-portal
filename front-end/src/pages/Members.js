@@ -30,7 +30,7 @@ function Members() {
   const [filteredMembers, setFilteredMembers] = useState([]);
   const [activeTab, setActiveTab] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [dataPerpage] = useState(8);
+  const [dataPerpage, setDataPerpage] = useState(8);
 
 
   // Fetch Data
@@ -257,7 +257,7 @@ function Members() {
       )
     },
   ];
-  
+
 
   return (
     <div>
@@ -329,7 +329,7 @@ function Members() {
 
                 </div>
                 <div>
-                <Dropdown menu={{ items: menuItems }} open={dropdownVisible} onOpenChange={setDropdownVisible} placement="bottomLeft" trigger={['click']}>
+                  <Dropdown menu={{ items: menuItems }} open={dropdownVisible} onOpenChange={setDropdownVisible} placement="bottomLeft" trigger={['click']}>
                     <Button className='mb-5'>Export</Button>
                   </Dropdown>
                 </div>
@@ -344,10 +344,21 @@ function Members() {
                 : currentData.map(x => MemberViewItem(x))
               }
             </div>
+
+
             {!userInput && filteredMembers.length > dataPerpage &&
               <PaginationTool dataPerpage={dataPerpage} totalData={filteredMembers.length} paginate={paginate} currentPage={currentPage} />
             }
-
+            {filteredMembers.length > 8 &&
+              <select
+                className="mt-3 flex bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                value={dataPerpage} onChange={e => setDataPerpage(Number(e.target.value))}>
+                <option value="8">8 per page</option>
+                <option value="20">20 per page</option>
+                <option value="50">50 per page</option>
+                <option value="100">100 per page</option>
+              </select>
+            }
           </div>
         </section>
       )};

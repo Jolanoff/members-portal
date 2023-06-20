@@ -437,6 +437,7 @@ const UsersTable = () => {
                 </div>
                 {/* table footer */}
                 <nav className="flex flex-col md:flex-row justify-center items-center md:items-center space-y-3 md:space-y-0 p-4">
+                    
                     {!userInput && filteredMembers.length > itemsPerPage && (
                         <Pagination
                             activePage={activePage}
