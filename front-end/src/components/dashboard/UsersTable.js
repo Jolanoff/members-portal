@@ -293,9 +293,16 @@ const UsersTable = () => {
             fetchData();
             SetCreateModal(false)
 
-        } catch (err) {
-            setErrorAlertMessage(err.response?.data);
-            showErrorAlert()
+        } catch (error) {
+            let errorMessages = '';
+            if (error.response && error.response.data && Array.isArray(error.response.data.errors)) {
+                errorMessages = error.response.data.errors.join('<br/>');
+                console.log(errorMessages);
+            } else {
+                errorMessages = 'An unknown error occurred.';
+            }
+            setErrorAlertMessage(errorMessages);
+            showErrorAlert();
         }
     };
 
@@ -448,12 +455,14 @@ const UsersTable = () => {
                         />
                     )}
                 </nav>
-                <div className={`fixed bottom-0 right-0 mb-12 mr-12 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-[100] ${successAlertVisable ? 'block' : 'hidden'}`}>
+                <div className={`fixed bottom-0  right-0 mb-12 mr-12 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-[100] ${successAlertVisable ? 'block' : 'hidden'}`}>
                     {successAlertMessage}
                 </div>
-                <div className={`fixed bottom-0 right-0 mb-12 mr-12 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-[100] ${errorAlertVisable ? 'block' : 'hidden'}`}>
-                    {errorAlertMessage}
-                </div>
+                <div
+                    className={`fixed bottom-0 right-0 mb-12 mr-12 bg-red-500 text-white px-4 py-2 rounded shadow-lg z-[100] ${errorAlertVisable ? 'block' : 'hidden'}`}
+                    dangerouslySetInnerHTML={{ __html: errorAlertMessage }}
+                />
+
                 {/* view modal */}
                 <Modal
                     isOpen={viewModal}

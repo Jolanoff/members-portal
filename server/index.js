@@ -7,6 +7,10 @@ import cors from "cors"
 import bodyParser from "body-parser";
 import Keycloak from "keycloak-connect";
 import KcAdminClient from '@keycloak/keycloak-admin-client';
+
+import { userValidationRules, projectValidationRules, validate } from './validation.js';
+
+
 const app = express()
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -263,7 +267,7 @@ app.get('/admin/disabled', keycloak.protect('admin'), (req, res) => {
   })
 })
 //------------------------------ create new user ------------------------------
-app.post('/createUser', keycloak.protect('admin'), async (req, res) => {
+app.post('/createUser', userValidationRules, validate, keycloak.protect('admin'), async (req, res) => {
   try {
     const { username, email, password, role } = req.body;
 
@@ -611,57 +615,64 @@ app.put('/leaveTeam', keycloak.protect(), async (req, res) => {
 
 
 // ------------------------------ change settings-password for the user ------------------------------
-app.put('/updateUserSettings/:id', keycloak.protect(), async (req, res) => {
-  const userId = req.params.id;
-  const { firstName, lastName, email } = req.body;
+app.put('/updateUserSettings/:id',userValidationRules, validate, keycloak.protect(), async (req, res) => {
+  
+    const userId = req.params.id;
+    const { firstName, lastName, email } = req.body;
 
-  const keycloakUserIdQuery = "SELECT keycloak_user_id FROM users WHERE id = " + userId;
-  db.query(keycloakUserIdQuery, async (err, data) => {
-    if (err) return res.json(err);
+    const keycloakUserIdQuery = "SELECT keycloak_user_id FROM users WHERE id = ?";
+    db.query(keycloakUserIdQuery, [userId], async (err, data) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'An error occurred' });
+      }
 
-    if (data.length === 0) {
-      return res.status(404).json("User not found");
-    }
+      if (data.length === 0) {
+        return res.status(404).json("User not found");
+      }
 
-    const keycloakUserId = data[0].keycloak_user_id;
+      const keycloakUserId = data[0].keycloak_user_id;
 
-    // Check if the authenticated user is updating their own profile
-    if (req.kauth.grant.access_token.content.sub !== keycloakUserId) {
-      return res.status(403).send('Forbidden: You can only edit your own profile.');
-    }
+      // Check if the authenticated user is updating their own profile
+      if (req.kauth.grant.access_token.content.sub !== keycloakUserId) {
+        return res.status(403).send('Forbidden: You can only edit your own profile.');
+      }
 
-    try {
-      const kcAdminClient = new KcAdminClient({
-        baseUrl: keycloakConfig.serverUrl,
-        realmName: keycloakConfig.realm,
-      });
+      try {
+        const kcAdminClient = new KcAdminClient({
+          baseUrl: keycloakConfig.serverUrl,
+          realmName: keycloakConfig.realm,
+        });
 
-      await kcAdminClient.auth({
-        clientId: keycloakConfig.clientId,
-        clientSecret: keycloakConfig.credentials.secret,
-        grantType: 'client_credentials',
-      });
+        await kcAdminClient.auth({
+          clientId: keycloakConfig.clientId,
+          clientSecret: keycloakConfig.credentials.secret,
+          grantType: 'client_credentials',
+        });
 
-      await kcAdminClient.users.update({ id: keycloakUserId }, {
-        firstName: firstName,
-        lastName: lastName,
-        email: email,
-      });
-      const updateUserQuery = "UPDATE users SET first_name = ?, last_name = ?, email = ? WHERE id = ?";
-      db.query(updateUserQuery, [firstName, lastName, email, userId], (err, result) => {
-        if (err) return res.json(err);
-      });
+        await kcAdminClient.users.update({ id: keycloakUserId }, {
+          firstName: firstName,
+          lastName: lastName,
+          email: email,
+        });
+        const updateUserQuery = "UPDATE users SET first_name = ?, last_name = ?, email = ? WHERE id = ?";
+        db.query(updateUserQuery, [firstName, lastName, email, userId], (err, result) => {
+          if (err) {
+            console.error(err);
+            return res.status(500).json({ message: 'An error occurred while updating user settings' });
+          }
+        });
 
-      return res.json("User settings updated successfully");
-    } catch (error) {
-      console.error('Error updating user settings:', error.message);
-      console.error('Error details:', error.response?.data);
-      res.status(409).send("This email adress is already used")
-      res.status(500).send(error.response.data.error_description);
-    }
-  });
+        return res.json("User settings updated successfully");
+      } catch (error) {
+        console.error('Error updating user settings:', error.message);
+        console.error('Error details:', error.response?.data);
+        return res.status(500).json({ message: 'An error occurred while updating user settings' });
+      }
+    });
+  }
+);
 
-});
 app.put('/user/changePassword/:id', keycloak.protect(), async (req, res) => {
   const { newPassword } = req.body;
   const userId = req.params.id;
@@ -1254,7 +1265,7 @@ app.get('/projects/:id', keycloak.protect(), (req, res) => {
 
 // ------------------------------ create new project ------------------------------
 
-app.post('/user/:id/createProject', keycloak.protect(), async (req, res) => {
+app.post('/user/:id/createProject' , projectValidationRules, validate, keycloak.protect(), async (req, res) => {
   const userId = req.params.id;
   const requestUserId = req.headers['x-user-id'];
   const requestUserRole = req.headers['x-user-role'];
@@ -1388,7 +1399,7 @@ app.post('/user/:id/createProject', keycloak.protect(), async (req, res) => {
 });
 // ------------------------------ edit project by id ------------------------------
 
-app.put('/user/:id/editProject/:projectId', keycloak.protect(), async (req, res) => {
+app.put('/user/:id/editProject/:projectId', projectValidationRules, validate, keycloak.protect(), async (req, res) => {
   const userId = req.params.id;
   const projectId = req.params.projectId;
   const requestUserId = req.headers['x-user-id'];
