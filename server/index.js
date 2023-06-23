@@ -251,7 +251,17 @@ app.get('/api/tags/suggest', keycloak.protect(), (req, res) => {
 //------------------------------ Get all data for the admin page ------------------------------
 
 app.get('/admin', keycloak.protect('admin'), (req, res) => {
-  const q = "SELECT * FROM users WHERE status = true"
+  const q = `SELECT users.*,
+GROUP_CONCAT(DISTINCT tags.tag_name) as tags,
+GROUP_CONCAT(DISTINCT projects.subsystem) as subsystems
+FROM users 
+LEFT JOIN user_tags ON users.id = user_tags.user_id
+LEFT JOIN tags ON user_tags.tag_id = tags.tag_id
+LEFT JOIN team_member_projects ON users.id = team_member_projects.team_member_id
+LEFT JOIN projects ON team_member_projects.project_id = projects.id
+WHERE users.status = true
+GROUP BY users.id;`
+
   db.query(q, (err, data) => {
     if (err) return res.json(err)
     return res.send(data)
@@ -615,62 +625,62 @@ app.put('/leaveTeam', keycloak.protect(), async (req, res) => {
 
 
 // ------------------------------ change settings-password for the user ------------------------------
-app.put('/updateUserSettings/:id',userValidationRules, validate, keycloak.protect(), async (req, res) => {
-  
-    const userId = req.params.id;
-    const { firstName, lastName, email } = req.body;
+app.put('/updateUserSettings/:id', userValidationRules, validate, keycloak.protect(), async (req, res) => {
 
-    const keycloakUserIdQuery = "SELECT keycloak_user_id FROM users WHERE id = ?";
-    db.query(keycloakUserIdQuery, [userId], async (err, data) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ message: 'An error occurred' });
-      }
+  const userId = req.params.id;
+  const { firstName, lastName, email } = req.body;
 
-      if (data.length === 0) {
-        return res.status(404).json("User not found");
-      }
+  const keycloakUserIdQuery = "SELECT keycloak_user_id FROM users WHERE id = ?";
+  db.query(keycloakUserIdQuery, [userId], async (err, data) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ message: 'An error occurred' });
+    }
 
-      const keycloakUserId = data[0].keycloak_user_id;
+    if (data.length === 0) {
+      return res.status(404).json("User not found");
+    }
 
-      // Check if the authenticated user is updating their own profile
-      if (req.kauth.grant.access_token.content.sub !== keycloakUserId) {
-        return res.status(403).send('Forbidden: You can only edit your own profile.');
-      }
+    const keycloakUserId = data[0].keycloak_user_id;
 
-      try {
-        const kcAdminClient = new KcAdminClient({
-          baseUrl: keycloakConfig.serverUrl,
-          realmName: keycloakConfig.realm,
-        });
+    // Check if the authenticated user is updating their own profile
+    if (req.kauth.grant.access_token.content.sub !== keycloakUserId) {
+      return res.status(403).send('Forbidden: You can only edit your own profile.');
+    }
 
-        await kcAdminClient.auth({
-          clientId: keycloakConfig.clientId,
-          clientSecret: keycloakConfig.credentials.secret,
-          grantType: 'client_credentials',
-        });
+    try {
+      const kcAdminClient = new KcAdminClient({
+        baseUrl: keycloakConfig.serverUrl,
+        realmName: keycloakConfig.realm,
+      });
 
-        await kcAdminClient.users.update({ id: keycloakUserId }, {
-          firstName: firstName,
-          lastName: lastName,
-          email: email,
-        });
-        const updateUserQuery = "UPDATE users SET first_name = ?, last_name = ?, email = ? WHERE id = ?";
-        db.query(updateUserQuery, [firstName, lastName, email, userId], (err, result) => {
-          if (err) {
-            console.error(err);
-            return res.status(500).json({ message: 'An error occurred while updating user settings' });
-          }
-        });
+      await kcAdminClient.auth({
+        clientId: keycloakConfig.clientId,
+        clientSecret: keycloakConfig.credentials.secret,
+        grantType: 'client_credentials',
+      });
 
-        return res.json("User settings updated successfully");
-      } catch (error) {
-        console.error('Error updating user settings:', error.message);
-        console.error('Error details:', error.response?.data);
-        return res.status(500).json({ message: 'An error occurred while updating user settings' });
-      }
-    });
-  }
+      await kcAdminClient.users.update({ id: keycloakUserId }, {
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+      });
+      const updateUserQuery = "UPDATE users SET first_name = ?, last_name = ?, email = ? WHERE id = ?";
+      db.query(updateUserQuery, [firstName, lastName, email, userId], (err, result) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ message: 'An error occurred while updating user settings' });
+        }
+      });
+
+      return res.json("User settings updated successfully");
+    } catch (error) {
+      console.error('Error updating user settings:', error.message);
+      console.error('Error details:', error.response?.data);
+      return res.status(500).json({ message: 'An error occurred while updating user settings' });
+    }
+  });
+}
 );
 
 app.put('/user/changePassword/:id', keycloak.protect(), async (req, res) => {
@@ -1265,7 +1275,7 @@ app.get('/projects/:id', keycloak.protect(), (req, res) => {
 
 // ------------------------------ create new project ------------------------------
 
-app.post('/user/:id/createProject' , projectValidationRules, validate, keycloak.protect(), async (req, res) => {
+app.post('/user/:id/createProject', projectValidationRules, validate, keycloak.protect(), async (req, res) => {
   const userId = req.params.id;
   const requestUserId = req.headers['x-user-id'];
   const requestUserRole = req.headers['x-user-role'];

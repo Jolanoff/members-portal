@@ -7,6 +7,9 @@ import Modal from 'react-modal';
 import { useKeycloak } from '../../KeycloakContext'
 import Pagination from 'react-js-pagination';
 
+import FilterForm from '../../pages/tools/FilterForm';
+
+
 import { Popover } from 'antd';
 
 const UsersTable = () => {
@@ -71,6 +74,7 @@ const UsersTable = () => {
             console.log(err);
         }
     };
+  
     useEffect(() => {
         fetchData();
     }, []);
@@ -216,8 +220,6 @@ const UsersTable = () => {
             SetUpdateModal(true);
         }
     };
-
-
     // Update Request
     const handleUpdate = async () => {
         const id = sessionStorage.getItem("id");
@@ -331,11 +333,17 @@ const UsersTable = () => {
     const [activePage, setActivePage] = useState(1);
     const [itemsPerPage] = useState(10);
 
+    const [selectedFilter, setSelectedFilter] = useState({ tags: [], department: [], subsystem: [] });
+    const handleSelectFilter = (newSelectedFilter) => {
+        setSelectedFilter(newSelectedFilter);
+    };
+
     // Filtering and search logic
     const onSearchChange = (e) => {
         const inputValues = e.target.value.toLowerCase().split(' ');
+        setUserInput(e.target.value); 
 
-        const filtered = data.filter((member) => {
+        let filtered = data.filter((member) => {
             const firstName = member.first_name.toLowerCase();
             const lastName = member.last_name.toLowerCase();
             const email = member.email.toLowerCase();
@@ -347,20 +355,43 @@ const UsersTable = () => {
             ));
         });
 
+        // Apply filters
+        filtered = filtered.filter(member => {
+            
+            const tags = member.tags ? member.tags.split(",") : []; // convert string to array
+            const department = member.department || "";
+            const subsystems = member.subsystems ? member.subsystems.split(",") : []; // convert string to array
+
+            const tagFilter = !selectedFilter.tags.length || selectedFilter.tags.some(tag => tags.includes(tag));
+            const departmentFilter = !selectedFilter.department.length || selectedFilter.department.includes(department);
+            const subsystemFilter = !selectedFilter.subsystem.length || selectedFilter.subsystem.some(subsystem => subsystems.includes(subsystem));
+
+            const isMemberIncluded = tagFilter && departmentFilter && subsystemFilter;
+           
+            return isMemberIncluded;
+        });
+
         setFilteredMembers(filtered);
     };
 
+
+
+    useEffect(() => {
+        onSearchChange({ target: { value: userInput } });
+    }, [data, selectedFilter]);
 
     const handlePageChange = (pageNumber) => {
         setActivePage(pageNumber);
     };
 
-    const indexLast = activePage * itemsPerPage;
-    const indexFirst = indexLast - itemsPerPage;
-    const currentData = userInput ? filteredMembers.slice(indexFirst, indexLast) : data.slice(indexFirst, indexLast);
+    const [currentData, setCurrentData] = useState([]);
 
-
-
+    useEffect(() => {
+        const indexLast = activePage * itemsPerPage;
+        const indexFirst = indexLast - itemsPerPage;
+        setCurrentData(filteredMembers.slice(indexFirst, indexLast));
+    }, [filteredMembers, activePage, itemsPerPage]);
+    
     const passwordPolicy = (
         <ul>
             <li>* Your password must be atleast 8 characters long</li>
@@ -395,7 +426,19 @@ const UsersTable = () => {
                             <button type="button" onClick={() => refresh()} className=" h-full text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center ml-5">
                                 <FaRedoAlt />
                             </button>
+
                         </form>
+                        <div className='flex justify-between'>
+                            <div className='mb-3 mt-3'>
+                                <FilterForm handleSelectFilter={handleSelectFilter} />
+
+                            </div>
+                            {/* <div>
+                                    <Dropdown menu={{ items: menuItems }} open={dropdownVisible} onOpenChange={setDropdownVisible} placement="bottomLeft" trigger={['click']}>
+                                        <Button className='mb-5'>Export</Button>
+                                    </Dropdown>
+                                </div> */}
+                        </div>
                     </div>
                     <div className="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
                         {/* add member */}
@@ -429,7 +472,7 @@ const UsersTable = () => {
                                         </td>
                                     </tr>
                                 )
-                                : currentData.map(MemberViewItem)
+                                : currentData.map(x => MemberViewItem(x))
                             }
                         </tbody>
 
@@ -437,7 +480,7 @@ const UsersTable = () => {
                 </div>
                 {/* table footer */}
                 <nav className="flex flex-col md:flex-row justify-center items-center md:items-center space-y-3 md:space-y-0 p-4">
-                    
+
                     {!userInput && filteredMembers.length > itemsPerPage && (
                         <Pagination
                             activePage={activePage}
