@@ -118,17 +118,17 @@ const NavbarPage = () => {
                 <Navbar.Toggle />
             </div>
             <Navbar.Collapse>
-                <label className='cursor-pointer'>
+                <label className='cursor-pointer font-bold text-xl'>
                     <Navbar.Link onClick={navigateToHome} active={location.pathname === '/'}>
                         Home
                     </Navbar.Link>
                 </label>
-                <label className='cursor-pointer'>
+                <label className='cursor-pointer font-bold text-xl'>
                     <Navbar.Link onClick={navigateToMembers} active={location.pathname === '/members'}>
                         Members
                     </Navbar.Link>
                 </label>
-                <label className='cursor-pointer'>
+                <label className='cursor-pointer font-bold text-xl'>
                     <Navbar.Link onClick={navigateToProjects} active={location.pathname === '/projects'}>
                         Projects
                     </Navbar.Link>

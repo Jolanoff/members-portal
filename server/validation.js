@@ -2,10 +2,10 @@
 import { check, validationResult } from 'express-validator';
 
 export const userValidationRules = [
-  check('firstName').isAlpha().withMessage('First name should contain only alphabets'),
+  check('firstName').isAlpha().withMessage('First name should contain only letters'),
   
   check('lastName').notEmpty().withMessage('Last name cannot be empty')
-  .matches(/^[a-zA-Z\s]*$/).withMessage('Last name should contain only alphabets and spaces')
+  .matches(/^[a-zA-Z\s]*$/).withMessage('Last name should contain only letters and spaces')
   .trim().not().isEmpty().withMessage('Last name cannot be just spaces'),
   
   check('email').isEmail().withMessage('Email should be a valid email address'),

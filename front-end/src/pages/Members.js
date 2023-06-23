@@ -57,9 +57,9 @@ function Members() {
   }, []);
   let placeholderText;
   if (userRole === 'former_member') {
-    placeholderText = "Search for name or email";
+    placeholderText = "Search by Name or Email";
   } else {
-    placeholderText = "Search for name, email or phone number";
+    placeholderText = "Search by Name, Email or Phone number";
   }
 
 
