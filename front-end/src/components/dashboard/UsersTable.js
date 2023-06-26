@@ -93,6 +93,8 @@ const UsersTable = () => {
                 <td className="px-4 py-3">{item.email}</td>
                 <td className="px-4 py-3">{item.student_number}</td>
                 <td className="px-4 py-3">{item.card_number}</td>
+                <td className="px-4 py-3">{item.nationality}</td>
+                <td className="px-4 py-3">{formatDate(item.birthday)}</td>
                 <td className="px-4 py-3 flex items-center justify-end">
                     <Dropdown label="actions" id="" data-dropdown-toggle="" className="inline-flex items-center p-0.5 text-sm font-medium text-center text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none dark:text-gray-400 dark:hover:text-gray-100" type="button">
                         <Dropdown.Item onClick={() => viewMember(item.id)}>
@@ -458,6 +460,8 @@ const UsersTable = () => {
                                 <th scope="col" className="px-4 py-3">Email</th>
                                 <th scope="col" className="px-4 py-3">Student/Employee number</th>
                                 <th scope="col" className="px-4 py-3">Card number</th>
+                                <th scope="col" className="px-4 py-3">Nationality</th>
+                                <th scope="col" className="px-4 py-3">Birthday</th>
                                 <th scope="col" className="px-4 py-3">
                                     <span className="sr-only">Actions</span>
                                 </th>
