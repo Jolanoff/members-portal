@@ -251,6 +251,8 @@ function Members() {
             return { label: field.charAt(0).toUpperCase() + field.slice(1).replace('_', ' '), key: field };
           })}
           filename={"my-filtered-data.csv"}
+          className='font-bold'
+
         >
           Export to CSV
         </CSVLink>

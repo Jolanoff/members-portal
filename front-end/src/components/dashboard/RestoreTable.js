@@ -238,13 +238,13 @@ const RestoreTable = () => {
                     <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                         <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                             <tr>
-                            <th scope="col" className="px-4 py-3">Full name</th>
+                                <th scope="col" className="px-4 py-3">Full name</th>
                                 <th scope="col" className="px-4 py-3">Email</th>
                                 <th scope="col" className="px-4 py-3">Student/Employee number</th>
                                 <th scope="col" className="px-4 py-3">Card number</th>
                                 <th scope="col" className="px-4 py-3">Nationality</th>
                                 <th scope="col" className="px-4 py-3">Birthday</th>
-                                
+
                                 <th scope="col" className="px-4 py-3">
                                     <span className="sr-only">Actions</span>
                                 </th>

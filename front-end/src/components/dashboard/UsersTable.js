@@ -8,9 +8,10 @@ import { useKeycloak } from '../../KeycloakContext'
 import Pagination from 'react-js-pagination';
 
 import FilterForm from '../../pages/tools/FilterForm';
+import { CSVLink } from 'react-csv';
 
 
-import { Popover } from 'antd';
+import { Popover, Checkbox, Dropdown as AntdDropdown, Button } from 'antd';
 
 const UsersTable = () => {
     //intialize keycloak
@@ -74,7 +75,7 @@ const UsersTable = () => {
             console.log(err);
         }
     };
-  
+
     useEffect(() => {
         fetchData();
     }, []);
@@ -343,7 +344,7 @@ const UsersTable = () => {
     // Filtering and search logic
     const onSearchChange = (e) => {
         const inputValues = e.target.value.toLowerCase().split(' ');
-        setUserInput(e.target.value); 
+        setUserInput(e.target.value);
 
         let filtered = data.filter((member) => {
             const firstName = member.first_name.toLowerCase();
@@ -359,7 +360,7 @@ const UsersTable = () => {
 
         // Apply filters
         filtered = filtered.filter(member => {
-            
+
             const tags = member.tags ? member.tags.split(",") : []; // convert string to array
             const department = member.department || "";
             const subsystems = member.subsystems ? member.subsystems.split(",") : []; // convert string to array
@@ -369,7 +370,7 @@ const UsersTable = () => {
             const subsystemFilter = !selectedFilter.subsystem.length || selectedFilter.subsystem.some(subsystem => subsystems.includes(subsystem));
 
             const isMemberIncluded = tagFilter && departmentFilter && subsystemFilter;
-           
+
             return isMemberIncluded;
         });
 
@@ -393,7 +394,7 @@ const UsersTable = () => {
         const indexFirst = indexLast - itemsPerPage;
         setCurrentData(filteredMembers.slice(indexFirst, indexLast));
     }, [filteredMembers, activePage, itemsPerPage]);
-    
+
     const passwordPolicy = (
         <ul>
             <li>* Your password must be atleast 8 characters long</li>
@@ -401,6 +402,165 @@ const UsersTable = () => {
             <li>* Your password should be unique and not used before</li>
         </ul>
     );
+
+
+    // export to csv file
+
+    const [selectedFields, setSelectedFields] = useState({
+        first_name: true,
+        last_name: true,
+        student_number: true,
+        card_number: true,
+        email: true,
+        phone_number: true,
+        birthday: true,
+        nationality: true,
+        date_of_joining: true,
+    });
+    const [dropdownVisible, setDropdownVisible] = useState(false);
+    const handleFieldChange = (e, formatter) => {
+        e.preventDefault();
+        e.nativeEvent.stopImmediatePropagation();
+        setSelectedFields({ ...selectedFields, [e.target.name]: e.target.checked });
+        const formattedDate = formatter(e.target.value);
+    };
+    const menuItems = [
+        {
+            key: 'first_name',
+            label: (
+                <Checkbox
+                    name="first_name"
+                    checked={selectedFields.first_name}
+                    onChange={handleFieldChange}
+                >
+                    First Name
+                </Checkbox>
+            ),
+        },
+        {
+            key: 'last_name',
+            label: (
+                <Checkbox
+                    name="last_name"
+                    checked={selectedFields.last_name}
+                    onChange={handleFieldChange}
+                >
+                    Last Name
+                </Checkbox>
+            ),
+        },
+        {
+            key: 'student_number',
+            label: (
+                <Checkbox
+                    name="student_number"
+                    checked={selectedFields.student_number}
+                    onChange={handleFieldChange}
+                >
+                    Student/Employee number
+                </Checkbox>
+            ),
+        },
+        {
+            key: 'card_number',
+            label: (
+                <Checkbox
+                    name="card_number"
+                    checked={selectedFields.card_number}
+                    onChange={handleFieldChange}
+                >
+                    Card number
+                </Checkbox>
+            ),
+        },
+        {
+            key: 'email',
+            label: (
+                <Checkbox
+                    name="email"
+                    checked={selectedFields.email}
+                    onChange={handleFieldChange}
+                >
+                    Email
+                </Checkbox>
+            ),
+        },
+        {
+            key: 'phone_number',
+            label: (
+
+                <Checkbox
+                    name="phone_number"
+                    checked={selectedFields.phone_number}
+                    onClick={handleFieldChange}
+                >
+                    Phone Number
+                </Checkbox>
+
+            ),
+        },
+        {
+            key: 'birthday',
+            label: (
+                <Checkbox
+                    name="birthday"
+                    checked={selectedFields.birthday}
+                    onChange={(e) => handleFieldChange(e, formatDate)}
+                >
+                    Birthday
+                </Checkbox>
+            ),
+        },
+        {
+            key: 'nationality',
+            label: (
+                <Checkbox
+                    name="nationality"
+                    checked={selectedFields.nationality}
+                    onChange={handleFieldChange}
+                >
+                    Nationality
+                </Checkbox>
+            ),
+        },
+        {
+            key: 'date_of_joining',
+            label: (
+                <Checkbox
+                    name="date_of_joining"
+                    checked={selectedFields.date_of_joining}
+                    onChange={(e) => handleFieldChange(e, formatDate)}
+                >
+                    Date of joining
+                </Checkbox>
+            ),
+        },
+        {
+            key: 'csv_link',
+            label: (
+                <CSVLink
+                    data={filteredMembers.map(member => {
+                        const newMember = {};
+                        Object.keys(selectedFields).forEach(field => {
+                            if (selectedFields[field]) {
+                                newMember[field] = (field === 'birthday' || field === 'date_of_joining') ? formatDate(member[field]) : member[field];
+                            }
+                        });
+                        return newMember;
+                    })}
+                    headers={Object.keys(selectedFields).filter(key => selectedFields[key]).map(field => {
+                        return { label: field.charAt(0).toUpperCase() + field.slice(1).replace('_', ' '), key: field };
+                    })}
+                    filename={"my-filtered-data.csv"}
+                    className='font-bold'
+                >
+
+                    Export to CSV
+                </CSVLink>
+
+            )
+        },
+    ];
 
 
     return (
@@ -433,13 +593,7 @@ const UsersTable = () => {
                         <div className='flex justify-between'>
                             <div className='mb-3 mt-3'>
                                 <FilterForm handleSelectFilter={handleSelectFilter} />
-
                             </div>
-                            {/* <div>
-                                    <Dropdown menu={{ items: menuItems }} open={dropdownVisible} onOpenChange={setDropdownVisible} placement="bottomLeft" trigger={['click']}>
-                                        <Button className='mb-5'>Export</Button>
-                                    </Dropdown>
-                                </div> */}
                         </div>
                     </div>
                     <div className="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
@@ -483,7 +637,7 @@ const UsersTable = () => {
                     </table>
                 </div>
                 {/* table footer */}
-                <nav className="flex flex-col md:flex-row justify-center items-center md:items-center space-y-3 md:space-y-0 p-4">
+                <nav className="flex flex-col md:flex-row justify-between items-center md:items-center space-y-3 md:space-y-0 p-4">
 
                     {!userInput && filteredMembers.length > itemsPerPage && (
                         <Pagination
@@ -502,6 +656,12 @@ const UsersTable = () => {
                             nextPageText={<FaArrowRight className='text-gray-500' />}
                         />
                     )}
+
+
+                    <AntdDropdown menu={{ items: menuItems }} open={dropdownVisible} onOpenChange={setDropdownVisible} placement="bottomLeft" trigger={['click']}>
+                        <Button className='mb-5'>Export</Button>
+                    </AntdDropdown>
+
                 </nav>
                 <div className={`fixed bottom-0  right-0 mb-12 mr-12 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-[100] ${successAlertVisable ? 'block' : 'hidden'}`}>
                     {successAlertMessage}
