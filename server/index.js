@@ -971,8 +971,17 @@ app.get('/api/projects_info', keycloak.protect(), (req, res) => {
     });
   });
 });
-
-
+// ------------------------------ filter department for user ------------------------------
+app.get('/api/FilteredDepartement', keycloak.protect(), (req, res) => {
+  const qDepartments = "SELECT DISTINCT department FROM users";
+  db.query(qDepartments, (err, departments) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+    return res.json({ departments: departments });
+  });
+});
 // ------------------------------ create a new study ------------------------------
 
 app.post('/user/:id/createStudy', keycloak.protect(), async (req, res) => {

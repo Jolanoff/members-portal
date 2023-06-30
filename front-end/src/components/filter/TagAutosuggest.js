@@ -142,7 +142,7 @@ const TagAutosuggest = ({ keycloak, onTagsSelected, currentTags }) => {
                 theme={{
                     container: 'relative block w-full',
                     suggestionsContainer:
-                        'absolute w-full mt-1 bg-white  rounded-md shadow-lg z-10',
+                        'absolute w-full mt-1 bg-white overflow-y-auto max-h-48 rounded-md shadow-lg z-10',
                     suggestionsContainerOpen: 'block',
                     suggestionsList: 'm-0 p-0 list-none',
                     suggestion: 'cursor-pointer',

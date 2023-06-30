@@ -4,25 +4,16 @@ import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { useKeycloak } from '../KeycloakContext';
 import { Tabs, Dropdown } from 'flowbite-react';
-
-
-
 import Modal from 'react-modal';
 import Autosuggest from 'react-autosuggest';
-
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-
-
 import { ThreeDots } from 'react-loader-spinner';
-
 import UserAutosuggest from '../components/filter/UserAutosuggest';
 import ProfileImageCropper from '../components/profile/ProfileImageCropper';
 import { FaUserEdit, FaPlus, FaWindowClose, FaEllipsisH } from 'react-icons/fa'
 import { MdExpandMore } from 'react-icons/md'
-
 import TagAutosuggest from '../components/filter/TagAutosuggest';
-
 //phone number input
 import 'react-phone-number-input/style.css'
 import PhoneInput from 'react-phone-number-input'
@@ -36,19 +27,11 @@ const Profile = () => {
   const [data, setData] = useState({});
   const [studies, setStudies] = useState([]);
   const [projects, setProjects] = useState([]);
-
-
-
-
   const [isCurrentUser, setIsCurrentUser] = useState(false);
-
   const [studyStartDate, setStudyStartDate] = useState(new Date())
   const [studyEndDate, setStudyEndDate] = useState(new Date())
-
   const [studiesErrMsg, setstudiesErrMsg] = useState('')
   const [projectErrMsg, setProjectErrMsg] = useState('')
-
-
   // Modals for studies
   const [addStudiesModal, SetAddStudiesModal] = useState(false);
   const [editStuiesModal, SetEditStudiesModal] = useState(false);
@@ -60,15 +43,9 @@ const Profile = () => {
   const [leaveProjectModal, setLeaveProjectModal] = useState(false);
   // general information modal
   const [editModalOpen, setEditModalOpen] = useState(false);
-
-
   const id = useParams().id;
   const [currentStudyId, setCurrentStudyId] = useState(null);
   const [currentProjectId, setCurrentProjectId] = useState(null);
-
-
-
-
   // loading 
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
@@ -134,7 +111,7 @@ const Profile = () => {
       setProjects(response.data)
 
     } catch (err) {
-      
+
     }
 
   }
@@ -545,12 +522,48 @@ const Profile = () => {
     setSubsystemSuggestions([]);
   };
 
+  //filter user departement
+  const [userDepartments, setUserDepartments] = useState([]);
+  const [userDepartmentInput, setUserDepartmentInput] = useState('');
+  const [userDepartmentSuggestions, setUserDepartmentSuggestions] = useState([]);
 
+  // Add this function to fetch user departments from your API
+  const fetchUserDepartments = async () => {
+  try {
+    const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/FilteredDepartement`, {
+      headers: {
+        Authorization: `Bearer ${keycloak.token}`,
+      },
+    });
+    // Extract only the department names and filter out null or undefined values
+    const departmentNames = response.data.departments.map(dept => dept.department).filter(Boolean);
+    setUserDepartments(departmentNames);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+
+  const onUserDepartmentInputChange = (event, { newValue }) => {
+    setUserDepartmentInput(newValue);
+  };
+
+  const onUserDepartmentSuggestionsFetchRequested = ({ value }) => {
+    setUserDepartmentSuggestions(getSuggestions(value, userDepartments));
+  };
+
+  const onUserDepartmentSuggestionsClearRequested = () => {
+    setUserDepartmentSuggestions([]);
+  };
+
+  // Add fetchUserDepartments to your useEffect hook
   useEffect(() => {
     fetchData();
     fetchDegreesAndSchools();
     fetchProjectsInfo();
+    fetchUserDepartments();
   }, []);
+
 
 
 
@@ -897,7 +910,7 @@ const Profile = () => {
         const formattedWithSpace = formattedPhone.replace(parsedPhoneNumber.countryCallingCode, parsedPhoneNumber.countryCallingCode + ' ');
         setPhone(formattedWithSpace);
       } else {
-        
+
         setPhone(number);
       }
     } else {
@@ -1197,7 +1210,7 @@ const Profile = () => {
                     }}
                     theme={{
                       container: 'relative block w-full',
-                      suggestionsContainer: 'absolute w-full mt-1 bg-white  rounded-md shadow-lg z-10',
+                      suggestionsContainer: 'absolute w-full mt-1 bg-white overflow-y-auto max-h-48  rounded-md shadow-lg z-10',
                       suggestionsContainerOpen: 'block',
                       suggestionsList: 'm-0 p-0 list-none',
                       suggestion: 'cursor-pointer',
@@ -1221,7 +1234,7 @@ const Profile = () => {
                     }}
                     theme={{
                       container: 'relative block w-full',
-                      suggestionsContainer: 'absolute w-full mt-1 bg-white  rounded-md shadow-lg z-10',
+                      suggestionsContainer: ' absolute w-full mt-1 bg-white overflow-y-auto max-h-48 rounded-md shadow-lg z-10',
                       suggestionsContainerOpen: 'block',
                       suggestionsList: 'm-0 p-0 list-none',
                       suggestion: 'cursor-pointer',
@@ -1245,7 +1258,7 @@ const Profile = () => {
                     }}
                     theme={{
                       container: 'relative block w-full',
-                      suggestionsContainer: 'absolute w-full mt-1 bg-white  rounded-md shadow-lg z-10',
+                      suggestionsContainer: 'absolute w-full mt-1 bg-white overflow-y-auto max-h-48 rounded-md shadow-lg z-10',
                       suggestionsContainerOpen: 'block',
                       suggestionsList: 'm-0 p-0 list-none',
                       suggestion: 'cursor-pointer',
@@ -1356,7 +1369,7 @@ const Profile = () => {
                     }}
                     theme={{
                       container: 'relative block w-full',
-                      suggestionsContainer: 'absolute w-full mt-1 bg-white  rounded-md shadow-lg z-10',
+                      suggestionsContainer: 'absolute w-full mt-1 bg-white overflow-y-auto max-h-48 rounded-md shadow-lg z-10',
                       suggestionsContainerOpen: 'block',
                       suggestionsList: 'm-0 p-0 list-none',
                       suggestion: 'cursor-pointer',
@@ -1380,7 +1393,7 @@ const Profile = () => {
                     }}
                     theme={{
                       container: 'relative block w-full',
-                      suggestionsContainer: 'absolute w-full mt-1 bg-white  rounded-md shadow-lg z-10',
+                      suggestionsContainer: 'absolute w-full mt-1 bg-white overflow-y-auto max-h-48 rounded-md shadow-lg z-10',
                       suggestionsContainerOpen: 'block',
                       suggestionsList: 'm-0 p-0 list-none',
                       suggestion: 'cursor-pointer',
@@ -1404,7 +1417,7 @@ const Profile = () => {
                     }}
                     theme={{
                       container: 'relative block w-full',
-                      suggestionsContainer: 'absolute w-full mt-1 bg-white  rounded-md shadow-lg z-10',
+                      suggestionsContainer: 'absolute w-full mt-1 bg-white overflow-y-auto max-h-48 rounded-md shadow-lg z-10',
                       suggestionsContainerOpen: 'block',
                       suggestionsList: 'm-0 p-0 list-none',
                       suggestion: 'cursor-pointer',
@@ -1549,7 +1562,7 @@ const Profile = () => {
                     }}
                     theme={{
                       container: 'relative block w-full',
-                      suggestionsContainer: 'absolute w-full mt-1 bg-white  rounded-md shadow-lg z-10',
+                      suggestionsContainer: 'absolute w-full mt-1 bg-white overflow-y-auto max-h-48 rounded-md shadow-lg z-10',
                       suggestionsContainerOpen: 'block',
                       suggestionsList: 'm-0 p-0 list-none',
                       suggestion: 'cursor-pointer',
@@ -1567,13 +1580,13 @@ const Profile = () => {
                     renderSuggestion={(suggestion) => <div className="py-2 px-4">{suggestion}</div>}
                     inputProps={{
                       className: "w-full h-10 px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:border-blue-400",
-                      placeholder: '',
+                      placeholder: 'Type your subsystem name',
                       value: subsystemInput,
                       onChange: onSubsystemInputChange,
                     }}
                     theme={{
                       container: 'relative block w-full',
-                      suggestionsContainer: 'absolute w-full mt-1 bg-white  rounded-md shadow-lg z-10',
+                      suggestionsContainer: 'absolute w-full mt-1 bg-white overflow-y-auto max-h-48 rounded-md shadow-lg z-10',
                       suggestionsContainerOpen: 'block',
                       suggestionsList: 'm-0 p-0 list-none',
                       suggestion: 'cursor-pointer',
@@ -1710,7 +1723,7 @@ const Profile = () => {
                     }}
                     theme={{
                       container: 'relative block w-full',
-                      suggestionsContainer: 'absolute w-full mt-1 bg-white  rounded-md shadow-lg z-10',
+                      suggestionsContainer: 'absolute w-full mt-1 bg-white overflow-y-auto max-h-48 rounded-md shadow-lg z-10',
                       suggestionsContainerOpen: 'block',
                       suggestionsList: 'm-0 p-0 list-none',
                       suggestion: 'cursor-pointer',
@@ -1729,13 +1742,13 @@ const Profile = () => {
                     inputProps={{
                       required: true,
                       className: "w-full h-10 px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:border-blue-400",
-                      placeholder: '',
+                      placeholder: 'Type your subsystem name',
                       value: subsystemInput,
                       onChange: onSubsystemInputChange,
                     }}
                     theme={{
                       container: 'relative block w-full',
-                      suggestionsContainer: 'absolute w-full mt-1 bg-white  rounded-md shadow-lg z-10',
+                      suggestionsContainer: 'absolute w-full mt-1 bg-white overflow-y-auto max-h-48 rounded-md shadow-lg z-10',
                       suggestionsContainerOpen: 'block',
                       suggestionsList: 'm-0 p-0 list-none',
                       suggestion: 'cursor-pointer',
@@ -1915,14 +1928,26 @@ const Profile = () => {
                 <label htmlFor="Department" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                   Department:
                 </label>
-                <input
-                  type="text"
-                  name="department"
-                  id="department"
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                  value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
-                  required
+                <Autosuggest
+                  suggestions={userDepartmentSuggestions}
+                  onSuggestionsFetchRequested={onUserDepartmentSuggestionsFetchRequested}
+                  onSuggestionsClearRequested={onUserDepartmentSuggestionsClearRequested}
+                  getSuggestionValue={(suggestion) => suggestion}
+                  renderSuggestion={(suggestion) => <div className="py-2 px-4">{suggestion}</div>}
+                  inputProps={{
+                    className: "w-full h-10 px-3 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:border-blue-400",
+                    placeholder: 'Type your departement name',
+                    value: userDepartmentInput,
+                    onChange: onUserDepartmentInputChange,
+                  }}
+                  theme={{
+                    container: 'relative block w-full',
+                    suggestionsContainer: 'absolute w-full mt-1 bg-white overflow-y-auto max-h-48 rounded-md shadow-lg z-10',
+                    suggestionsContainerOpen: 'block',
+                    suggestionsList: 'm-0 p-0 list-none',
+                    suggestion: 'cursor-pointer',
+                    suggestionHighlighted: 'bg-gray-200',
+                  }}
                 />
               </div>
               <div className="mt-4">

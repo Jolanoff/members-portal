@@ -24,12 +24,9 @@ const UserAutosuggest = ({ keycloak, onUsersSelected, defaultSelectedUsers, curr
             console.log(err);
         }
     };
-
     const [selectedUsers, setSelectedUsers] = useState(
         Array.isArray(defaultSelectedUsers) ? defaultSelectedUsers : []
     );
-
-
     const addUser = (user) => {
         if (!selectedUsers.some((u) => u.id === user.id)) {
             setSelectedUsers([...selectedUsers, user]);
@@ -49,8 +46,6 @@ const UserAutosuggest = ({ keycloak, onUsersSelected, defaultSelectedUsers, curr
         setSelectedUsers(updatedUsers);
         onUsersSelected(updatedUsers);
     };
-
-
     useEffect(() => {
         fetchUsers();
     }, []);
@@ -58,7 +53,6 @@ const UserAutosuggest = ({ keycloak, onUsersSelected, defaultSelectedUsers, curr
     const onUserInputChange = (event, { newValue }) => {
         setUserInput(newValue);
     };
-
     const getUserSuggestions = (value) => {
         const escapedValue = escapeRegexCharacters(value.trim());
         if (escapedValue === '') {
@@ -69,15 +63,12 @@ const UserAutosuggest = ({ keycloak, onUsersSelected, defaultSelectedUsers, curr
 
         return users.filter(user => regex.test(`${user.first_name} ${user.last_name}`));
     };
-
     const onUserSuggestionsFetchRequested = ({ value }) => {
         setUserSuggestions(getUserSuggestions(value));
     };
-
     const onUserSuggestionsClearRequested = () => {
         setUserSuggestions([]);
     };
-
     return (
         <>
             <ul className="mb-2">
@@ -126,7 +117,7 @@ const UserAutosuggest = ({ keycloak, onUsersSelected, defaultSelectedUsers, curr
                 }}
                 theme={{
                     container: 'relative block w-full',
-                    suggestionsContainer: 'absolute w-full mt-1 bg-white  rounded-md shadow-lg z-10',
+                    suggestionsContainer: 'absolute w-full mt-1 bg-white overflow-y-auto max-h-48 rounded-md shadow-lg z-10',
                     suggestionsContainerOpen: 'block',
                     suggestionsList: 'm-0 p-0 list-none',
                     suggestion: 'cursor-pointer',
