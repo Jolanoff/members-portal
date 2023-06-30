@@ -92,6 +92,8 @@ const UsersTable = () => {
                     </Link>
                 </th>
                 <td className="px-4 py-3">{item.email}</td>
+                <td className="px-4 py-3">{item.phone_number}</td>
+
                 <td className="px-4 py-3">{item.student_number}</td>
                 <td className="px-4 py-3">{item.card_number}</td>
                 <td className="px-4 py-3">{item.nationality}</td>
@@ -611,7 +613,10 @@ const UsersTable = () => {
                         <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                             <tr>
                                 <th scope="col" className="px-4 py-3">Full name</th>
+
                                 <th scope="col" className="px-4 py-3">Email</th>
+                                <th scope="col" className="px-4 py-3">Phone number</th>
+
                                 <th scope="col" className="px-4 py-3">Student/Employee number</th>
                                 <th scope="col" className="px-4 py-3">Card number</th>
                                 <th scope="col" className="px-4 py-3">Nationality</th>

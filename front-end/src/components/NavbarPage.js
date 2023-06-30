@@ -133,12 +133,6 @@ const NavbarPage = () => {
                         Projects
                     </Navbar.Link>
                 </label>
-                
-                <div></div>
-
-                <div></div>
-
-
             </Navbar.Collapse>
         </Navbar>
     )
