@@ -22,10 +22,12 @@ import { FaUserEdit, FaPlus, FaWindowClose, FaEllipsisH } from 'react-icons/fa'
 import { MdExpandMore } from 'react-icons/md'
 
 import TagAutosuggest from '../components/filter/TagAutosuggest';
+
 //phone number input
 import 'react-phone-number-input/style.css'
 import PhoneInput from 'react-phone-number-input'
 import { parsePhoneNumber, isValidPhoneNumber } from 'react-phone-number-input'
+
 // country input
 import { CountryDropdown } from 'react-country-region-selector'
 
@@ -895,6 +897,7 @@ const Profile = () => {
         const formattedWithSpace = formattedPhone.replace(parsedPhoneNumber.countryCallingCode, parsedPhoneNumber.countryCallingCode + ' ');
         setPhone(formattedWithSpace);
       } else {
+        
         setPhone(number);
       }
     } else {
