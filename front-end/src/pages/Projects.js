@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom';
 import Pagination from 'react-js-pagination';
 import { FaArrowLeft, FaArrowRight, FaAngleDoubleRight, FaAngleDoubleLeft } from 'react-icons/fa'
 
+
+
 const Projects = () => {
   const { keycloak } = useKeycloak();
   const [projects, setProjects] = useState([]);

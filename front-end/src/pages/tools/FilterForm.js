@@ -54,7 +54,7 @@ const FilterForm = ({ handleSelectFilter }) => {
         onClick={() => handleFilterSelect(filterType, item)}
       >
         {item}
-      </Menu.Item>
+      </Menu.Item>  
     )
   );
   const renderSearch = (filterType) => (
