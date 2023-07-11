@@ -22,7 +22,25 @@ import { parsePhoneNumber, isValidPhoneNumber } from 'react-phone-number-input'
 // country input
 import { CountryDropdown } from 'react-country-region-selector'
 
+// markdown text input
+import MdEditor from 'react-markdown-editor-lite';
+import 'react-markdown-editor-lite/lib/index.css';
+
+import { Parser } from 'html-to-react';
+import MarkdownIt from 'markdown-it';
+const md = new MarkdownIt();
+
+
+
 const Profile = () => {
+
+  const renderHTML = (text) => {
+    const md = new MarkdownIt();
+    const mdToHtml = md.render(text);
+    const htmlToReactParser = new Parser();
+    return htmlToReactParser.parse(mdToHtml);
+};
+
   const { keycloak } = useKeycloak();
   const [data, setData] = useState({});
   const [studies, setStudies] = useState([]);
@@ -529,21 +547,19 @@ const Profile = () => {
 
   // Add this function to fetch user departments from your API
   const fetchUserDepartments = async () => {
-  try {
-    const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/FilteredDepartement`, {
-      headers: {
-        Authorization: `Bearer ${keycloak.token}`,
-      },
-    });
-    // Extract only the department names and filter out null or undefined values
-    const departmentNames = response.data.departments.map(dept => dept.department).filter(Boolean);
-    setUserDepartments(departmentNames);
-  } catch (err) {
-    console.log(err);
-  }
-};
-
-
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/FilteredDepartement`, {
+        headers: {
+          Authorization: `Bearer ${keycloak.token}`,
+        },
+      });
+      // Extract only the department names and filter out null or undefined values
+      const departmentNames = response.data.departments.map(dept => dept.department).filter(Boolean);
+      setUserDepartments(departmentNames);
+    } catch (err) {
+      console.log(err);
+    }
+  };
   const onUserDepartmentInputChange = (event, { newValue }) => {
     setUserDepartmentInput(newValue);
   };
@@ -555,7 +571,6 @@ const Profile = () => {
   const onUserDepartmentSuggestionsClearRequested = () => {
     setUserDepartmentSuggestions([]);
   };
-
   // Add fetchUserDepartments to your useEffect hook
   useEffect(() => {
     fetchData();
@@ -563,10 +578,6 @@ const Profile = () => {
     fetchProjectsInfo();
     fetchUserDepartments();
   }, []);
-
-
-
-
   // create new study 
   const handleAddStudy = async () => {
     if (!schoolInput || !degreeInput || !fieldOfStudyInput || !studyStartDate || !studyEndDate) {
@@ -1625,14 +1636,13 @@ const Profile = () => {
               </div>
               <div>
                 <label htmlFor="description" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description: </label>
-                <textarea
+                <MdEditor
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  id="description"
-                  className=" mb-5 w-full h-32 p-2 text-base border border-gray-300 rounded-md focus:outline-none focus:border-blue-400 resize-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                  placeholder="Type your project description"
-                  required
-                ></textarea>
+                  style={{ height: '150px' }}
+                  onChange={({ text }) => setDescription(text)}
+                  renderHTML={text => renderHTML(text)}
+                />
+
               </div>
               <div className='flex'>
                 <button
@@ -1788,14 +1798,12 @@ const Profile = () => {
               </div>
               <div>
                 <label htmlFor="description" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Description: </label>
-                <textarea
+                <MdEditor
                   value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  id="description"
-                  className=" mb-5 w-full h-32 p-2 text-base border border-gray-300 rounded-md focus:outline-none focus:border-blue-400 resize-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                  placeholder="Type your project description"
-                  required
-                ></textarea>
+                  style={{ height: '150px' }}
+                  onChange={({ text }) => setDescription(text)}
+                  renderHTML={text => renderHTML(text)}
+                />
               </div>
               <div className='flex'>
                 <button

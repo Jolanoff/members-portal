@@ -3,6 +3,11 @@ import { useKeycloak } from '../KeycloakContext';
 import axios from 'axios'
 import { useParams, Link } from 'react-router-dom';
 import { ThreeDots } from 'react-loader-spinner';
+
+// markdown render
+import ReactMarkdown from 'react-markdown';
+import DOMPurify from 'dompurify';
+
 const ProjectSection = () => {
     // loading 
     const [isLoading, setIsLoading] = useState(true);
@@ -90,7 +95,10 @@ const ProjectSection = () => {
                         <p className="text-gray-600 text-sm mb-2">
                             <strong>Last Updated By:</strong> {project.last_updated_by_name}
                         </p>
-                        <p className="mt-4 text-gray-600 break-words">{project.description}</p>
+                        <p className="mt-3 text-gray-600 text-sm mb-2">
+                            <strong> Description:</strong>
+                        </p>
+                        <ReactMarkdown>{DOMPurify.sanitize(project.description)}</ReactMarkdown>
                     </div>
 
                     <div className="px-4 py-2 bg-gray-100 border-t border-gray-200">
