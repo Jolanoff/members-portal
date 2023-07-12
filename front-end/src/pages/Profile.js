@@ -36,10 +36,19 @@ const Profile = () => {
 
   const renderHTML = (text) => {
     const md = new MarkdownIt();
+  
+    md.renderer.rules.link_open = function(tokens, idx, options, env, self) {
+      if (tokens[idx].attrGet('href').startsWith('www')) {
+        tokens[idx].attrSet('href', 'http://' + tokens[idx].attrGet('href'));
+      }
+      return self.renderToken(tokens, idx, options);
+    };
+  
     const mdToHtml = md.render(text);
     const htmlToReactParser = new Parser();
     return htmlToReactParser.parse(mdToHtml);
-};
+  };
+  
 
   const { keycloak } = useKeycloak();
   const [data, setData] = useState({});

@@ -5,8 +5,23 @@ import { useParams, Link } from 'react-router-dom';
 import { ThreeDots } from 'react-loader-spinner';
 
 // markdown render
-import ReactMarkdown from 'react-markdown';
+import MarkdownIt from 'markdown-it';
 import DOMPurify from 'dompurify';
+
+const md = new MarkdownIt({
+    html: true,
+    linkify: true,
+});
+
+md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
+    tokens[idx].attrPush(['target', '_blank']);
+    tokens[idx].attrPush(['rel', 'noopener noreferrer']);
+    if (tokens[idx].attrs[tokens[idx].attrIndex('href')][1].startsWith('www')) {
+        tokens[idx].attrs[tokens[idx].attrIndex('href')][1] = 'http://' + tokens[idx].attrs[tokens[idx].attrIndex('href')][1];
+    }
+    return self.renderToken(tokens, idx, options);
+};
+
 
 const ProjectSection = () => {
     // loading 
@@ -37,6 +52,8 @@ const ProjectSection = () => {
         };
         fetchProjects();
     }, [keycloak]);
+
+
 
     return (
 
@@ -98,7 +115,11 @@ const ProjectSection = () => {
                         <p className="mt-3 text-gray-600 text-sm mb-2">
                             <strong> Description:</strong>
                         </p>
-                        <ReactMarkdown>{DOMPurify.sanitize(project.description)}</ReactMarkdown>
+                        <div
+                            dangerouslySetInnerHTML={{
+                                __html: DOMPurify.sanitize(md.render(project.description)),
+                            }}
+                        />
                     </div>
 
                     <div className="px-4 py-2 bg-gray-100 border-t border-gray-200">
