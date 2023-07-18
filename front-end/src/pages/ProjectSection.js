@@ -12,7 +12,7 @@ const md = new MarkdownIt({
     html: true,
     linkify: true,
 });
-
+//fix the link added in the markdown
 md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
     tokens[idx].attrPush(['target', '_blank']);
     tokens[idx].attrPush(['rel', 'noopener noreferrer']);
@@ -21,8 +21,13 @@ md.renderer.rules.link_open = function (tokens, idx, options, env, self) {
     }
     return self.renderToken(tokens, idx, options);
 };
+//give the image added in the markdown max width and height
+md.renderer.rules.image = function (tokens, idx, options, env, self) {
+    tokens[idx].attrs.push(['style', 'max-width: 50%; max-height: 50%;']);
+    return self.renderToken(tokens, idx, options);
+  };
 
-
+  
 const ProjectSection = () => {
     // loading 
     const [isLoading, setIsLoading] = useState(true);
@@ -133,8 +138,6 @@ const ProjectSection = () => {
             )}
         </div>
     );
-
-
 }
 
 export default ProjectSection

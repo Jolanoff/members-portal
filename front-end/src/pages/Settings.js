@@ -18,7 +18,7 @@ const Settings = () => {
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
     const [hasFormerMemberRole, setHasFormerMemberRole] = useState(false);
 
-    const [errMsg, setErrorMsg] = useState('')
+   
     const [showModal, setShowModal] = useState(false);
 
     const fetchdata = async () => {
@@ -255,7 +255,7 @@ const Settings = () => {
 
                     <div className="flex items-center space-x-4 justify-between">
                         <button type="submit" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">Save changes</button>
-                        {errMsg && <p className="error-message">{errMsg}</p>}
+                        
                     </div>
 
                 </form>

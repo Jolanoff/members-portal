@@ -1653,7 +1653,7 @@ const Profile = () => {
                 />
 
               </div>
-              <div className='flex'>
+              <div className='flex mt-3'>
                 <button
                   type="button"
                   onClick={handleCreateProject}
@@ -1814,7 +1814,7 @@ const Profile = () => {
                   renderHTML={text => renderHTML(text)}
                 />
               </div>
-              <div className='flex'>
+              <div className='flex mt-3'>
                 <button
                   type="button"
                   onClick={handleEditProject}
